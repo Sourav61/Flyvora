@@ -1,16 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import Navbar from '../../components/navbar/Navbar'
 import "./home.scss"
-import { Box, Button, Grid, Typography } from "@mui/material";
+import { Box, Button, Grid } from "@mui/material";
 import SimpleSelectMenu from "../../components/SimpleSelectMenu";
-import TravelersSelectMenu from "../../components/TravelersSelectMenu";
 import BagsSelectMenu from "../../components/BagsSelectMenu";
 import { db } from '../../../admin/firebase-config';
-import { addDoc, arrayUnion, collection, doc, getDocs, query, setDoc, updateDoc, where } from '@firebase/firestore';
+import { addDoc, collection, doc, getDocs, query, updateDoc, where } from '@firebase/firestore';
 import SearchIcon from "@mui/icons-material/Search";
 import { DataGrid } from '@mui/x-data-grid';
-import { Link } from 'react-router-dom';
-import { userColumns, userRows } from "../../../admin/datatablesource";
+import { userColumns } from "../../../admin/datatablesource";
 import DateComponent from '../../components/DateComponent';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateSeatCount } from '../../../Redux/actions/productAction';
@@ -26,11 +24,11 @@ const Home = () => {
     const { seats } = useSelector((state) => state.details);
     const dispatch = useDispatch();
 
-    const usersCollectionRef = collection(db, "flights")
-
     const { user } = useAuth0();
 
     useEffect(() => {
+        const usersCollectionRef = collection(db, "flights");
+
         const getBookings = async () => {
             const bookingsRef = collection(db, "bookings");
 
@@ -85,11 +83,7 @@ const Home = () => {
         setData(result);
     };
 
-    useEffect(() => {
-
-    }, [])
-
-    const bookTicket = async (params) => {
+const bookTicket = async (params) => {
         if (!user || !user.email) {
             alert("Please log in as a Traveler to book flights!");
             return;

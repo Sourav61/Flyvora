@@ -93,7 +93,7 @@ export const userColumns = [
     renderCell: (params) => {
       return (
         <div style={{ display: 'flex', justifyContent: "center", alignItems: "center", flex: 1 }}>
-          {params?.row?.stops == 0 ? 'Non-Stop' : params?.row?.stops}
+          {params?.row?.stops === 0 ? 'Non-Stop' : params?.row?.stops}
         </div>
       );
     },
@@ -105,7 +105,7 @@ export const userColumns = [
     renderCell: (params) => {
       return (
         <div style={{ display: 'flex', justifyContent: "center", alignItems: "center", flex: 1 }}>
-          {params?.row?.seats == 0 ? 'Seats Full' : params?.row?.seats}
+          {params?.row?.seats === 0 ? 'Seats Full' : params?.row?.seats}
         </div>
       );
     },

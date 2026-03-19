@@ -9,12 +9,11 @@ import ListOutlinedIcon from "@mui/icons-material/ListOutlined";
 import { DarkModeContext } from "../../../context/darkModeContext";
 import { useContext } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { Modal } from "@mui/material";
 import { Link } from "react-router-dom";
 
 const Navbar = () => {
   const { dispatch } = useContext(DarkModeContext);
-  const { loginWithRedirect, isAuthenticated, logout, user } = useAuth0();
+  const { isAuthenticated, logout, user } = useAuth0();
 
   function modalPopUp() {
     var buttons = document.querySelectorAll(".toggle-button");

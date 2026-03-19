@@ -9,14 +9,11 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import * as React from "react";
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-//REDUX
 
 export default function BagsSelectMenu(props) {
   const { options, label } = props;
-  const [option, setOption] = React.useState("");
-  const dispatch = useDispatch();
-  const [total, setTotal] = useState(0);
+  const [option] = React.useState("");
+  const [total] = useState(0);
   // const [numbersArray, setNumbersArray] = useState([bags, carryOnBags, checkedBags]);
 
   // const handleAdd = (index) => {

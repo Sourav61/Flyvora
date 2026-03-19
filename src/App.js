@@ -15,14 +15,14 @@ import 'bootstrap/dist/css/bootstrap.css';
 import { useAuth0 } from "@auth0/auth0-react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { Provider } from "react-redux";
-import { applyMiddleware, compose, legacy_createStore as createStore } from "redux";
+
 import store from "./Redux/store";
 import BookingList from "./user/components/BookingList/BookingList";
 import Bookings from "./admin/pages/Main/bookings/Bookings";
 
 function App() {
   const { darkMode } = useContext(DarkModeContext);
-  const { loginWithRedirect, isAuthenticated, logout, user } = useAuth0();
+  const { isAuthenticated } = useAuth0();
 
   const muiTheme = createTheme({
     palette: {

@@ -5,15 +5,11 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+
 
 export default function BasicSelect(props) {
-  const { options, label, setType, type, setCategory, category } = props;
+  const { options, label } = props;
   const [option, setOption] = React.useState("");
-  const dispatch = useDispatch();
-  // const products = useSelector((state) => state.flights);
-  // console.log("pro", products);
-
   useEffect(() => {
     setOption(options[0])
   }, [options])

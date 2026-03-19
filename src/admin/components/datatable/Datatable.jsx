@@ -1,20 +1,17 @@
 import { useState, useEffect } from "react";
 import { DataGrid } from "@mui/x-data-grid";
-import { userColumns, userRows } from "../../datatablesource";
+import { userColumns } from "../../datatablesource";
 import { Link } from "react-router-dom";
 import "./datatable.scss";
 import { db } from '../../firebase-config'
-import { addDoc, collection, deleteDoc, doc, getDocs, updateDoc } from "firebase/firestore"
-import { useAuth0 } from "@auth0/auth0-react";
+import { collection, deleteDoc, doc, getDocs } from "firebase/firestore"
 
 const Datatable = () => {
   const [data, setData] = useState([]);
-  const usersCollectionRef = collection(db, "flights")
-
-  const { loginWithRedirect, isAuthenticated, logout, user } = useAuth0();
 
 
   useEffect(() => {
+    const usersCollectionRef = collection(db, "flights");
     const getUsers = async () => {
       const data = await getDocs(usersCollectionRef);
       setData(data.docs.map(doc => ({ ...doc.data(), id: doc.id })))

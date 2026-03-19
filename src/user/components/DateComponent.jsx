@@ -1,16 +1,11 @@
 import React from "react";
-import { makeStyles } from "@mui/styles";
 import TextField from "@mui/material/TextField";
 import Grid from "@mui/material/Grid";
-import { useState, useContext } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { setArrivaltime, setDeparturetime } from "../../Redux/actions/productAction";
 
 export default function DateComponent() {
   const dispatch = useDispatch();
-  const { arrivalTime, departureTime } = useSelector((state) => state.time);
-  const [departureDate, setDepartureDate] = useState(new Date().getTime());
-  const [returnDate, setReturnDate] = useState(new Date().getTime());
 
   const handleDepartureDate = (event) => {
     dispatch(setDeparturetime(new Date(event.target.value).getTime()));

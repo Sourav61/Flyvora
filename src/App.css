@@ -14,18 +14,18 @@
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: var(--color-bg-dark-app);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  font-size: calc(var(--font-size-xs) + 2vmin);
+  color: var(--color-white);
 }
 
 .App-link {
-  color: #61dafb;
+  color: var(--color-secondary);
 }
 
 .user-choice {
@@ -43,13 +43,13 @@
 }
 
 .admin-login {
-  color: rgb(154, 97, 109);
+  color: var(--color-admin);
 }
 
 .user-choice .seperate-roles {
   align-items: baseline;
-  font-size: 25px;
-  font-weight: 500;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
   display: flex;
 }
 

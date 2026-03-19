@@ -1,49 +1,54 @@
 .app.dark {
-  background-color: #111;
-  color: rgb(156, 156, 156);
+  background-color: var(--color-bg-dark-app);
+  color: var(--color-text-dark);
+  min-height: 100vh;
 
   .chartGrid {
-    stroke: rgba(228, 228, 228, 0.219);
+    stroke: rgba(255, 255, 255, 0.05);
   }
 
   .table {
-    background-color: #111;
+    background-color: transparent !important;
 
     .tableCell {
-      color: gray;
+      color: var(--color-text-dark) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
     }
   }
 
   .navbar {
-    color: #999;
-    border-color: #333;
+    color: var(--color-text-dark);
+    border-color: rgba(255, 255, 255, 0.05);
 
     .search {
-      border-color: gray;
+      border-color: rgba(255, 255, 255, 0.1);
     }
   }
 
   .sidebar {
-    background-color: #111;
-    border-color: #333;
+    background-color: rgba(255, 255, 255, 0.02);
+    border-color: rgba(255, 255, 255, 0.05);
 
     .top {
       .logo {
-        color: #999;
+        background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
       }
     }
     hr {
-      border-color: #333;
+      border-color: rgba(255, 255, 255, 0.05);
     }
 
     ul {
       li {
         &:hover {
-          background-color: #333;
+          background-color: rgba(116, 81, 248, 0.1);
         }
 
         .icon {
-          color: #999;
+          color: var(--color-primary);
         }
       }
     }
@@ -51,19 +56,32 @@
 
   .datatable {
     .datagrid {
-      color: gray;
+      color: var(--color-text-dark);
       border: none;
 
-      .viewButton,
-      .deleteButton,
+      .viewButton {
+        color: var(--color-primary);
+        background: rgba(116, 81, 248, 0.1);
+        border: 1px solid rgba(116, 81, 248, 0.2);
+        border-radius: 6px;
+        padding: 4px 8px;
+      }
+      .deleteButton {
+        color: var(--color-red);
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: 6px;
+        padding: 4px 8px;
+      }
       .cellWithStatus {
-        color: gray;
+        color: var(--color-white);
         border: none;
       }
     }
   }
 
-  input{
-      background-color: transparent;
+  input {
+    background-color: transparent;
+    color: var(--color-white);
   }
 }

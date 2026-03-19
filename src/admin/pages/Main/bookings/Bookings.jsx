@@ -52,14 +52,17 @@ const Bookings = () => {
             <Sidebar />
             <div className="ticketContainer">
                 <Navbar />
-                <DataGrid
-                    className="datagrid"
-                    rows={bookedTickets()}
-                    columns={ticketColumns}
-                    pageSize={9}
-                    rowsPerPageOptions={[9]}
-                    checkboxSelection
-                />
+                <div className="datatable-wrapper custom-datagrid">
+                    <DataGrid
+                        className="datagrid"
+                        rows={bookedTickets()}
+                        columns={ticketColumns}
+                        pageSize={9}
+                        rowsPerPageOptions={[9]}
+                        checkboxSelection
+                        style={{ height: '600px', width: '100%' }}
+                    />
+                </div>
             </div>
         </div >
     )

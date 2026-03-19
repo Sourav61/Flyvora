@@ -1,26 +1,38 @@
 .datatable {
   height: 600px;
   padding: 20px;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 
   .datatableTitle {
     width: 100%;
     font-size: 24px;
-    color: gray;
-    margin-bottom: 10px;
+    font-weight: 700;
+    color: var(--color-white);
+    margin-bottom: 20px;
     display: flex;
     align-items: center;
-    justify-content: end;
+    justify-content: space-between;
 
     .link {
       text-decoration: none;
-      color: green;
-      font-size: 16px;
-      font-weight: 400;
-      border: 1px solid green;
-      padding: 5px;
-
-      border-radius: 5px;
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+      font-size: 14px;
+      font-weight: 600;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      padding: 6px 12px;
+      border-radius: 8px;
       cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: rgba(16, 185, 129, 0.2);
+        transform: translateY(-2px);
+      }
     }
   }
 
@@ -33,27 +45,33 @@
       height: 32px;
       border-radius: 50%;
       object-fit: cover;
-      margin-right: 20px;
+      margin-right: 15px;
+      border: 2px solid rgba(116, 81, 248, 0.3);
     }
   }
 
   .cellWithStatus {
-    padding: 5px;
-    border-radius: 5px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
 
     &.active {
-      background-color: rgba(0, 128, 0, 0.05);
-      color: green;
+      background-color: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.2);
     }
 
     &.pending {
-      background-color: rgba(255, 217, 0, 0.05);
-      color: goldenrod;
+      background-color: rgba(255, 165, 0, 0.1);
+      color: orange;
+      border: 1px solid rgba(255, 165, 0, 0.2);
     }
 
     &.passive {
-      background-color: rgba(255, 0, 0, 0.05);
-      color: crimson;
+      background-color: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.2);
     }
   }
 
@@ -61,24 +79,35 @@
     display: flex;
     align-items: center;
     gap: 15px;
-    justify-content: center;
-    flex: 1;
-
 
     .viewButton {
-      padding: 2px 5px;
-      border-radius: 5px;
-      color: darkblue;
-      border: 1px dotted rgba(0, 0, 139, 0.596);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-weight: 600;
+      color: var(--color-primary);
+      background: rgba(116, 81, 248, 0.1);
+      border: 1px solid rgba(116, 81, 248, 0.2);
       cursor: pointer;
+      transition: all 0.2s;
+      
+      &:hover {
+        background: rgba(116, 81, 248, 0.2);
+      }
     }
 
     .deleteButton {
-      padding: 2px 5px;
-      border-radius: 5px;
-      color: crimson;
-      border: 1px dotted rgba(220, 20, 60, 0.6);
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-weight: 600;
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
       cursor: pointer;
+      transition: all 0.2s;
+      
+      &:hover {
+        background: rgba(239, 68, 68, 0.2);
+      }
     }
   }
 }

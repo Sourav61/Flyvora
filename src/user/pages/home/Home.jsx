@@ -90,27 +90,47 @@ const Home = () => {
     }, [])
 
     const bookTicket = async (params) => {
+        if (!user || !user.email) {
+            alert("Please log in as a Traveler to book flights!");
+            return;
+        }
+
         const id = params?.row?.id;
+        const currentSeats = params?.row?.seats;
 
-        const flightDoc = doc(db, "flights", id);
-        const newFields = { seats: params?.row?.seats - 1 };
-        await updateDoc(flightDoc, newFields);
+        if (currentSeats <= 0) {
+            alert("Sorry, this flight is fully booked!");
+            return;
+        }
 
-        const bookingsRef = collection(db, "bookings");
-        const arr = bookings.filter((el) => el?.email === user?.email)
+        try {
+            const flightDoc = doc(db, "flights", id);
+            const newFields = { seats: currentSeats - 1 };
+            await updateDoc(flightDoc, newFields);
 
-        console.log('bookings', user?.email, Object.keys(arr).length);
+            const bookingsRef = collection(db, "bookings");
+            const arr = bookings.filter((el) => el?.email === user?.email);
 
-        if (Object.keys(arr).length > 0) {
-            const bookingDoc = doc(db, "bookings", arr[0].id);
-            const temp = [...arr[0].bookings, params?.row?.id];
-            const newFields = { bookings: temp };
-            await updateDoc(bookingDoc, newFields);
-        } else {
-            await addDoc(bookingsRef, {
-                email: user?.email,
-                bookings: [params?.row?.id]
-            })
+            if (Object.keys(arr).length > 0) {
+                const bookingDoc = doc(db, "bookings", arr[0].id);
+                const temp = [...arr[0].bookings, id];
+                await updateDoc(bookingDoc, { bookings: temp });
+            } else {
+                await addDoc(bookingsRef, {
+                    email: user.email,
+                    bookings: [id]
+                });
+            }
+
+            // Update local state to reflect the seat change
+            setData(prevData => prevData.map(flight => 
+                flight.id === id ? { ...flight, seats: currentSeats - 1 } : flight
+            ));
+
+            alert("Ticket booked successfully! Enjoy your trip.");
+        } catch (error) {
+            console.error("Error booking ticket: ", error);
+            alert("There was an issue booking your ticket. Please try again.");
         }
     };
 
@@ -126,11 +146,14 @@ const Home = () => {
                         <button
                             onClick={() => bookTicket(params)}
                             style={{
-                                backgroundColor: 'blueviolet',
-                                padding: "5px 10px",
+                                background: 'linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%)',
+                                padding: "6px 14px",
                                 color: "white",
-                                border: "0px",
-                                cursor: "pointer"
+                                border: "none",
+                                borderRadius: "8px",
+                                cursor: "pointer",
+                                fontWeight: "600",
+                                boxShadow: "0 4px 10px rgba(116, 81, 248, 0.3)"
                             }}>Book</button>
                     </div>
                 );
@@ -141,88 +164,68 @@ const Home = () => {
     return (
         <div className='home'>
             <Navbar />
-            <div className='main'>
-                <h1>Where would you like to go?</h1>
-                <div className="filters">
-                    <Box
-                        sx={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            flexDirection: "column",
-                            marginTop: "20px",
-                        }}
-                    >
-                        <Grid container spacing={2}>
-                            <Grid item xs={6} sm={6} md={3} lg={3}>
-                                <SimpleSelectMenu
-                                    options={["One-way", "Round-trip", "Multi-city", "Trip Builder"]}
-                                    label={"Flights"}
-                                    // onClickHandle={() => updateSearch(param)}
-                                    setType={setType}
-                                    type={type}
-                                />
-                            </Grid>
-                            <Grid item xs={6} sm={6} md={3} lg={3}>
-                                <input type="number" name="Adults" className="adults" value={seats} onChange={(e) => dispatch(updateSeatCount(e.target.value))} />
-                                {/* <TravelersSelectMenu
-                                options={[
-                                    ["Adults", "18-64"],
-                                    ["Students", "over 18"],
-                                    ["Seniors", "65+"],
-                                    ["Youths", "12-17"],
-                                    ["Children", "2-11"],
-                                    ["Toddler in own seat", "under 2"],
-                                    ["Infant in lap", "under 2"],
-                                ]}
-                                label={"Travelers"}
-
-                            // onClickHandle={() => updateSearch(param, state)}
-                            /> */}
-                            </Grid>
-                            <Grid item xs={6} sm={6} md={3} lg={3}>
-                                <SimpleSelectMenu
-                                    options={["Economy", "Premium Economy", "Business", "First", "Multiple"]}
-                                    label={"Class"}
-                                    setCategory={setCategory}
-                                    category={category}
-                                // onClickHandle={() => updateSearch(param, state)}
-                                />
-                            </Grid>
-                            <Grid item xs={6} sm={6} md={3} lg={3}>
-                                <BagsSelectMenu options={["Carry-on", "Checked"]} label={"Bags"}
-                                // handleClick={() => updateSearch(param, state)} 
-                                />
-                            </Grid>
-                        </Grid>
-                    </Box>
+            <div className="hero-section">
+                <div className="hero-content">
+                    <h1>Where will your next adventure begin?</h1>
+                    <p>Discover unseen places, experience untouched beauty, and create unforgettable memories with our premium booking experience.</p>
                 </div>
-                <Grid spacing={2} mt={2}>
-                    <DateComponent />
-                </Grid>
-                <div className="search">
-                    <Grid justifyContent="center" alignItems="center">
+            </div>
+            
+            <div className='main'>
+                <div className="search-panel glassmorphism">
+                    <div className="filters">
+                        <Box sx={{ flexGrow: 1, marginTop: "10px" }}>
+                            <Grid container spacing={3}>
+                                <Grid item xs={12} sm={6} md={3} lg={3}>
+                                    <SimpleSelectMenu
+                                        options={["One-way", "Round-trip", "Multi-city"]}
+                                        label={"Flights"}
+                                        setType={setType}
+                                        type={type}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={6} md={3} lg={3}>
+                                    <input placeholder="Adults" type="number" name="Adults" className="adults" value={seats} onChange={(e) => dispatch(updateSeatCount(e.target.value))} />
+                                </Grid>
+                                <Grid item xs={12} sm={6} md={3} lg={3}>
+                                    <SimpleSelectMenu
+                                        options={["Economy", "Premium Economy", "Business", "First"]}
+                                        label={"Class"}
+                                        setCategory={setCategory}
+                                        category={category}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={6} md={3} lg={3}>
+                                    <BagsSelectMenu options={["Carry-on", "Checked"]} label={"Bags"} />
+                                </Grid>
+                            </Grid>
+                        </Box>
+                    </div>
+                    
+                    <Box mt={3} mb={1}>
+                        <DateComponent />
+                    </Box>
+                    
+                    <div className="search">
                         <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center" }} fullWidth>
                             <Button
                                 fullWidth
-                                maxWidth={"600px"}
                                 variant="contained"
-                                color="primary"
-                                size="large"
                                 onClick={() => handleClick()}
                                 sx={{
-                                    background: "linear-gradient(135deg,#ff690f 0%,#e8381b 100%)",
+                                    background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%)",
+                                    maxWidth: "400px",
                                 }}
                                 startIcon={<SearchIcon />}
                             >
-                                Search
+                                Search Flights
                             </Button>
                         </Box>
-                    </Grid>
+                    </div>
                 </div>
+
                 <div className="results">
-                    <div className="datatable">
+                    <div className="datatable custom-datagrid">
                         <DataGrid
                             className="datagrid"
                             rows={data}

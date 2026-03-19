@@ -36,32 +36,32 @@ const BookingList = () => {
     }, [])
 
     function bookedTickets() {
-        const arr = bookings.filter((el) => el?.email === user?.email)
+        if (!user || !user.email) return [];
+        const arr = bookings.filter((el) => el?.email === user?.email);
+        if (!arr.length) return [];
 
-        const namesToDeleteSet = new Set(arr[0]?.bookings);
+        const namesToDeleteSet = new Set(arr[0]?.bookings || []);
 
-        const newArr = data.filter((name) => {
-            // return those elements not in the namesToDeleteSet
-
-            return namesToDeleteSet.has(name?.id);
-        });
-
-        return newArr;
+        return data.filter((name) => namesToDeleteSet.has(name?.id));
     }
 
     return (
-
-        <div className="list">
-            <div className="listContainer">
-                <Navbar />
-                <DataGrid
-                    className="datagrid"
-                    rows={bookedTickets()}
-                    columns={userColumns}
-                    pageSize={9}
-                    rowsPerPageOptions={[9]}
-                    checkboxSelection
-                />
+        <div className="home">
+            <Navbar />
+            <div className="main">
+                <div style={{ marginTop: '20px', padding: '20px' }} className="glassmorphism">
+                    <h2 style={{ color: "var(--color-white)", marginBottom: '20px' }}>Your Booked Flights</h2>
+                    <div style={{ height: 600, width: '100%' }} className="custom-datagrid">
+                        <DataGrid
+                            className="datagrid"
+                            rows={bookedTickets()}
+                            columns={userColumns}
+                            pageSize={9}
+                            rowsPerPageOptions={[9]}
+                            checkboxSelection
+                        />
+                    </div>
+                </div>
             </div>
         </div>
     )

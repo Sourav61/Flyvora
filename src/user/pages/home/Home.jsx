@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import Navbar from '../../components/navbar/Navbar'
 import "./home.scss"
 import { Box, Button, Grid } from "@mui/material";
@@ -26,9 +26,9 @@ const Home = () => {
 
     const { user } = useAuth0();
 
-    useEffect(() => {
-        const usersCollectionRef = collection(db, "flights");
+    const usersCollectionRef = useMemo(() => collection(db, "flights"), []);
 
+    useEffect(() => {
         const getBookings = async () => {
             const bookingsRef = collection(db, "bookings");
 
@@ -44,7 +44,7 @@ const Home = () => {
         }
 
         getFlightDetails();
-    }, [])
+    }, [usersCollectionRef])
 
     const compareDates = (t1, t2, ignoreTime = true)/*: number*/ => {
         const MS_PER_HOUR = 60 * 60 * 1000;

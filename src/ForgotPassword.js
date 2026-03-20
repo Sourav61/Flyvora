@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { sendPasswordResetEmail } from 'firebase/auth';
+import { auth } from './admin/firebase-config';
 import { MDBContainer, MDBInput } from 'mdb-react-ui-kit';
 import { useNavigate } from 'react-router-dom';
 import styled from '@emotion/styled';
@@ -66,10 +68,24 @@ function ForgotPassword() {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e) => {
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (email) {
+    setError('');
+    try {
+      await sendPasswordResetEmail(auth, email);
       setSubmitted(true);
+    } catch (err) {
+      console.error('Firebase error:', err.code, err.message);
+      const messages = {
+        'auth/user-not-found': 'No account found with this email address.',
+        'auth/invalid-email': 'Please enter a valid email address.',
+        'auth/too-many-requests': 'Too many attempts. Please try again later.',
+        'auth/operation-not-allowed': 'Password reset is not enabled. Please contact support.',
+        'auth/network-request-failed': 'Network error. Check your connection and try again.',
+      };
+      setError(messages[err.code] || `Error: ${err.message}`);
     }
   };
 
@@ -108,6 +124,7 @@ function ForgotPassword() {
                 />
               </CustomInput>
               <Button type="submit">Send Reset Link</Button>
+              {error && <p style={{ color: '#ef4444', marginTop: '1rem', textAlign: 'center' }}>{error}</p>}
             </form>
           ) : (
             <div style={{ textAlign: 'center', padding: '2rem 0' }}>

@@ -15,7 +15,6 @@ import 'bootstrap/dist/css/bootstrap.css';
 import { useAuth0 } from "@auth0/auth0-react";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { Provider } from "react-redux";
-
 import store from "./Redux/store";
 import BookingList from "./user/components/BookingList/BookingList";
 import Bookings from "./admin/pages/Main/bookings/Bookings";

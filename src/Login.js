@@ -134,7 +134,7 @@ function Login() {
             <MDBCol md="7">
               <ContentCol>
                 <FormContainer>
-                  <h2 className="fw-bold mb-4" style={{ fontSize: '28px' }}>Welcome back</h2>
+                  <h2 className="fw-bold mb-4" style={{ fontSize: '28px', color: "white" }}>Welcome back</h2>
                   
                   <RoleToggleContainer>
                     <RoleBtn active={role === 'admin'} onClick={() => setRole('admin')}>

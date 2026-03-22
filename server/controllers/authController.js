@@ -7,7 +7,6 @@ const MIN_PASSWORD_LENGTH = 8;
 
 const register = async (req, res, next) => {
   try {
-    console.log(req.body);
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
@@ -89,7 +88,15 @@ const login = async (req, res, next) => {
   }
 };
 
+const getProfile = async (req, res) => {
+  return res.status(200).json({
+    message: "Token is valid",
+    user: req.user,
+  });
+};
+
 module.exports = {
   register,
   login,
+  getProfile,
 };

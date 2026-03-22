@@ -1,0 +1,101 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap");
+
+$color-primary: #1a73e8;
+$color-primary-dark: #0b57d0;
+$color-secondary: #191c1e;
+$color-secondary-soft: #414754;
+$color-surface: #f7f9fc;
+$color-surface-raised: #ffffff;
+$color-surface-muted: #f2f4f7;
+$color-border: #c1c6d6;
+$color-border-soft: #d8dde8;
+$color-text: #191c1e;
+$color-text-muted: #5d6676;
+$color-text-subtle: #6f7b90;
+$color-success: #16a34a;
+$color-danger: #b42318;
+$color-danger-soft: #ffebe9;
+$color-info-soft: #eef4ff;
+
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-2xl: 48px;
+$spacing-3xl: 64px;
+
+$radius-sm: 12px;
+$radius-md: 18px;
+$radius-lg: 24px;
+$radius-pill: 999px;
+
+$shadow-sm: 0 14px 34px rgba(25, 28, 30, 0.04);
+$shadow-md: 0 24px 48px rgba(25, 28, 30, 0.08);
+$shadow-lg: 0 32px 64px rgba(25, 28, 30, 0.12);
+
+:root {
+  --color-primary: #{$color-primary};
+  --color-primary-dark: #{$color-primary-dark};
+  --color-secondary: #{$color-secondary};
+  --color-secondary-soft: #{$color-secondary-soft};
+  --color-surface: #{$color-surface};
+  --color-surface-raised: #{$color-surface-raised};
+  --color-surface-muted: #{$color-surface-muted};
+  --color-border: #{$color-border};
+  --color-border-soft: #{$color-border-soft};
+  --color-text: #{$color-text};
+  --color-text-muted: #{$color-text-muted};
+  --color-text-subtle: #{$color-text-subtle};
+  --color-success: #{$color-success};
+  --color-danger: #{$color-danger};
+  --color-danger-soft: #{$color-danger-soft};
+  --color-info-soft: #{$color-info-soft};
+  --shadow-sm: #{$shadow-sm};
+  --shadow-md: #{$shadow-md};
+  --shadow-lg: #{$shadow-lg};
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  background: $color-surface;
+  color: $color-text;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.table-cell-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+}

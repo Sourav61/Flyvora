@@ -1,0 +1,103 @@
+@use "./globals" as *;
+
+.content-page {
+  min-height: 100vh;
+  padding: $spacing-2xl $spacing-lg;
+  background: $color-surface;
+
+  &__card {
+    width: min(860px, 100%);
+    margin: 0 auto;
+    padding: $spacing-2xl;
+    border-radius: $radius-lg;
+    background: $color-surface-raised;
+    box-shadow: $shadow-md;
+  }
+
+  &__back {
+    margin-bottom: $spacing-lg;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: $color-primary;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  &__title {
+    margin: 0 0 $spacing-md;
+    font: 800 clamp(2rem, 5vw, 3rem) "Manrope", sans-serif;
+    line-height: 1.05;
+  }
+
+  &__stamp {
+    margin: 0 0 $spacing-xl;
+    color: $color-text-subtle;
+  }
+
+  &__section {
+    margin-top: $spacing-xl;
+
+    h2 {
+      margin: 0 0 $spacing-sm;
+      font: 800 1.35rem "Manrope", sans-serif;
+    }
+
+    p {
+      margin: 0;
+      color: $color-text-muted;
+      line-height: 1.75;
+    }
+  }
+}
+
+.booking-list {
+  min-height: 100vh;
+  padding: $spacing-2xl $spacing-lg;
+  background: $color-surface;
+
+  &__shell {
+    width: min(1180px, 100%);
+    margin: 0 auto;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    gap: $spacing-lg;
+    align-items: end;
+    margin-bottom: $spacing-xl;
+
+    h1 {
+      margin: 0 0 $spacing-sm;
+      font: 800 clamp(2rem, 5vw, 3rem) "Manrope", sans-serif;
+      line-height: 1.05;
+    }
+
+    p {
+      margin: 0;
+      color: $color-text-muted;
+      line-height: 1.7;
+    }
+  }
+
+  &__panel {
+    padding: $spacing-lg;
+    border-radius: $radius-lg;
+    background: $color-surface-raised;
+    box-shadow: $shadow-sm;
+  }
+
+  &__notice {
+    padding: $spacing-lg;
+    border-radius: $radius-md;
+    background: $color-info-soft;
+    color: $color-text-muted;
+    line-height: 1.7;
+  }
+
+  &__grid {
+    height: 600px;
+    width: 100%;
+  }
+}

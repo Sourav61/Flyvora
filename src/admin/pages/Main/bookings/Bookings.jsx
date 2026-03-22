@@ -21,7 +21,6 @@ const Bookings = () => {
     }, [])
 
     function bookedTickets() {
-        // data.forEach(e => {
         const allTickets = [];
 
         bookings.forEach(ticket => {
@@ -40,15 +39,16 @@ const Bookings = () => {
             <div className="ticketContainer">
                 <Navbar />
                 <div className="datatable-wrapper custom-datagrid">
-                    <DataGrid
-                        className="datagrid"
-                        rows={bookedTickets()}
-                        columns={ticketColumns}
-                        pageSize={9}
-                        rowsPerPageOptions={[9]}
-                        checkboxSelection
-                        style={{ height: '600px', width: '100%' }}
-                    />
+                    <div className="datagrid-shell">
+                        <DataGrid
+                            className="datagrid"
+                            rows={bookedTickets()}
+                            columns={ticketColumns}
+                            pageSize={9}
+                            rowsPerPageOptions={[9]}
+                            checkboxSelection
+                        />
+                    </div>
                 </div>
             </div>
         </div >

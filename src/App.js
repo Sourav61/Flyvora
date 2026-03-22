@@ -5,114 +5,127 @@ import { Terms, Privacy } from "./Policies";
 import List from "./admin/pages/Main/list/List";
 import Single from "./admin/pages/Main/single/Single";
 import New from "./admin/pages/Main/new/New";
-import Home from "./user/pages/home/Home"
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Home from "./user/pages/home/Home";
+import { Navigate, Routes, Route, useLocation } from "react-router-dom";
 import { productInputs, userInputs } from "./admin/formSource";
 import "./admin/style/dark.scss";
 import { useContext } from "react";
 import { DarkModeContext } from "./context/darkModeContext";
-import 'bootstrap/dist/css/bootstrap.css';
-import { useAuth0 } from "@auth0/auth0-react";
+import "bootstrap/dist/css/bootstrap.css";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import { Provider } from "react-redux";
-import store from "./Redux/store";
+import { useAuth0 } from "@auth0/auth0-react";
 import BookingList from "./user/components/BookingList/BookingList";
 import Bookings from "./admin/pages/Main/bookings/Bookings";
 
+function ProtectedRoute({ children }) {
+  const { isAuthenticated, isLoading } = useAuth0();
+  const location = useLocation();
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ returnTo: location.pathname }} />;
+  }
+
+  return children;
+}
+
 function App() {
   const { darkMode } = useContext(DarkModeContext);
-  const { isAuthenticated } = useAuth0();
 
   const muiTheme = createTheme({
     palette: {
-      mode: darkMode ? 'dark' : 'light',
-      primary: {
-        main: '#7451f8',
-      },
-      secondary: {
-        main: '#ff690f',
-      },
+      mode: darkMode ? "dark" : "light",
     },
     typography: {
-      fontFamily: '"Outfit", "Roboto", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Inter", "Helvetica", "Arial", sans-serif',
     },
-    components: {
-      MuiSelect: {
-        styleOverrides: {
-          root: {
-            color: darkMode ? '#fff' : 'inherit',
-          }
-        }
-      },
-      MuiInputBase: {
-        styleOverrides: {
-          root: {
-            color: darkMode ? '#fff' : 'inherit',
-          }
-        }
-      },
-      MuiInputLabel: {
-        styleOverrides: {
-          root: {
-            color: darkMode ? 'rgba(255,255,255,0.7)' : 'inherit',
-          }
-        }
-      },
-      MuiDataGrid: {
-        styleOverrides: {
-          root: {
-            color: '#ffffff',
-            border: 'none',
-          },
-          cell: {
-            color: '#ffffff',
-          },
-          columnHeaders: {
-            color: '#ffffff',
-          }
-        }
-      }
-    }
   });
 
   return (
     <div className={darkMode ? "app dark" : "app"}>
       <ThemeProvider theme={muiTheme}>
-        <Provider store={store}>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/">
-                <Route index element={!isAuthenticated ? <Login /> : <Home />} />
-                <Route path="forgot-password" element={<ForgotPassword />} />
-                <Route path="terms" element={<Terms />} />
-                <Route path="privacy" element={<Privacy />} />
-                <Route path="admin">
-                  <Route index element={<Dashboard />} />
-                  <Route path="bookings" element={<Bookings />} />
-                  <Route path="users">
-                    <Route index element={<List />} />
-                    <Route path=":userId" element={<Single />} />
-                    <Route
-                      path="new"
-                      element={<New inputs={userInputs} title="Add New User" />}
-                    />
-                  </Route>
-                  <Route path="flights">
-                    <Route index element={<List />} />
-                    <Route path=":flightId" element={<Single />} />
-                    <Route
-                      path="new"
-                      element={<New inputs={productInputs} title="Add New flight" />}
-                    />
-                  </Route>
-                </Route>
-                <Route path="bookings">
-                  <Route index element={<BookingList />} />
-                </Route>
-              </Route>
-            </Routes>
-          </BrowserRouter>
-        </Provider>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/bookings"
+            element={
+              <ProtectedRoute>
+                <Bookings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <ProtectedRoute>
+                <List />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users/:userId"
+            element={
+              <ProtectedRoute>
+                <Single />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users/new"
+            element={
+              <ProtectedRoute>
+                <New inputs={userInputs} title="Add New User" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/flights"
+            element={
+              <ProtectedRoute>
+                <List />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/flights/:flightId"
+            element={
+              <ProtectedRoute>
+                <Single />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/flights/new"
+            element={
+              <ProtectedRoute>
+                <New inputs={productInputs} title="Add New flight" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bookings"
+            element={
+              <ProtectedRoute>
+                <BookingList />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
       </ThemeProvider>
     </div>
   );

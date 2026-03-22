@@ -1,70 +1,73 @@
-import React, { useEffect, useState } from 'react'
-import Navbar from '../navbar/Navbar'
-import { DataGrid } from '@mui/x-data-grid'
-import { userColumns } from '../../../admin/datatablesource'
-import { db } from '../../../admin/firebase-config'
-import { collection, getDocs } from '@firebase/firestore'
-import { useAuth0 } from '@auth0/auth0-react'
+import React, { useEffect, useState } from "react";
+import { DataGrid } from "@mui/x-data-grid";
+import { collection, getDocs } from "@firebase/firestore";
+import { useAuth0 } from "@auth0/auth0-react";
+import { userColumns } from "../../../admin/datatablesource";
+import { db } from "../../../admin/firebase-config";
+import "../../../styles/content-pages.scss";
 
 const BookingList = () => {
-    const [bookings, setBookings] = useState([])
-    const [data, setData] = useState([])
-    const { user } = useAuth0();
+  const [bookings, setBookings] = useState([]);
+  const [flights, setFlights] = useState([]);
+  const { user } = useAuth0();
 
+  useEffect(() => {
+    const loadData = async () => {
+      const bookingsSnapshot = await getDocs(collection(db, "bookings"));
+      const flightsSnapshot = await getDocs(collection(db, "flights"));
 
-    useEffect(() => {
-        const getBookings = async () => {
-            const bookingsRef = collection(db, "bookings");
+      setBookings(bookingsSnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      setFlights(flightsSnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    };
 
-            const booking = await getDocs(bookingsRef);
-            console.log('clggggg', booking.docs);
-            setBookings(booking.docs.map(doc => ({ ...doc.data(), id: doc.id })))
-        }
+    loadData();
+  }, []);
 
-        getBookings();
-
-        const usersCollectionRef = collection(db, "flights")
-
-        const getFlightDetails = async () => {
-            const data = await getDocs(usersCollectionRef);
-            setData(data?.docs?.map(doc => ({ ...doc.data(), id: doc.id })))
-        }
-
-        getFlightDetails();
-
-
-    }, [])
-
-    function bookedTickets() {
-        if (!user || !user.email) return [];
-        const arr = bookings.filter((el) => el?.email === user?.email);
-        if (!arr.length) return [];
-
-        const namesToDeleteSet = new Set(arr[0]?.bookings || []);
-
-        return data.filter((name) => namesToDeleteSet.has(name?.id));
+  const bookedTickets = () => {
+    if (!user?.email) {
+      return [];
     }
 
-    return (
-        <div className="home">
-            <Navbar />
-            <div className="main">
-                <div style={{ marginTop: '20px', padding: '20px' }} className="glassmorphism">
-                    <h2 style={{ color: "var(--color-white)", marginBottom: '20px' }}>Your Booked Flights</h2>
-                    <div style={{ height: 600, width: '100%' }} className="custom-datagrid">
-                        <DataGrid
-                            className="datagrid"
-                            rows={bookedTickets()}
-                            columns={userColumns}
-                            pageSize={9}
-                            rowsPerPageOptions={[9]}
-                            checkboxSelection
-                        />
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-}
+    const matchedBooking = bookings.find((entry) => entry.email === user.email);
 
-export default BookingList
+    if (!matchedBooking) {
+      return [];
+    }
+
+    const bookedFlightIds = new Set(matchedBooking.bookings || []);
+    return flights.filter((flight) => bookedFlightIds.has(flight.id));
+  };
+
+  return (
+    <main className="booking-list">
+      <div className="booking-list__shell">
+        <div className="booking-list__header">
+          <div>
+            <h1>Your booked flights</h1>
+            <p>Bookings unlock after Google sign-in. This view shows the flights linked to your traveler email.</p>
+          </div>
+        </div>
+
+        <div className="booking-list__panel">
+          {bookedTickets().length === 0 ? (
+            <div className="booking-list__notice">
+              No bookings found for this account yet. Once reservation flow is connected to the backend booking flow, they will appear here.
+            </div>
+          ) : (
+            <div className="booking-list__grid">
+              <DataGrid
+                rows={bookedTickets()}
+                columns={userColumns}
+                pageSize={9}
+                rowsPerPageOptions={[9]}
+                checkboxSelection
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+};
+
+export default BookingList;

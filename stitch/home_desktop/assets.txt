@@ -1,0 +1,46 @@
+# Flyvora Homepage Assets & Icons Specification
+
+## 1. Pre-Footer Section: "Travel with Confidence"
+This section uses high-quality SVG-style icons with a soft tonal background to communicate trust and service.
+
+### Asset 1: Trusted Security Icon
+*   **Icon Name:** `shield` (Material Symbols)
+*   **Color:** Primary Blue (`#1A73E8`)
+*   **Container Style:** Rounded square with a soft blue tint (`bg-blue-50` or `rgba(26, 115, 232, 0.1)`)
+*   **Context:** Used for "Trusted Security" feature card.
+
+### Asset 2: 24/7 Concierge Icon
+*   **Icon Name:** `support_agent` or `headset_mic` (Material Symbols)
+*   **Color:** Muted Teal (`#2EC4B6`)
+*   **Container Style:** Rounded square with a soft teal tint (`bg-teal-50` or `rgba(46, 196, 182, 0.1)`)
+*   **Context:** Used for "24/7 Concierge" feature card.
+
+### Asset 3: Intelligent Routing Icon
+*   **Icon Name:** `auto_awesome` or `insights` (Material Symbols)
+*   **Color:** Warm Orange/Coral (Secondary accent)
+*   **Container Style:** Rounded square with a soft coral tint.
+*   **Context:** Used for "Intelligent Routing" feature card.
+
+---
+
+## 2. Footer: "Connect" Section Icons
+The social icons in the footer are designed for a minimalist, premium look.
+
+### Icon 1: Threads/Social Alternative
+*   **Icon Name:** `alternate_email` (Material Symbols)
+*   **Style:** Minimalist circle outline.
+*   **Color:** On-surface variant (Slate/Gray) with a subtle hover transition to Primary Blue.
+
+### Icon 2: Global/Web
+*   **Icon Name:** `language` or `public` (Material Symbols)
+*   **Style:** Minimalist circle outline.
+*   **Color:** On-surface variant (Slate/Gray) with a subtle hover transition to Primary Blue.
+
+---
+
+## 3. Styling Guidelines for Developers
+To replicate the look in code, use the following Tailwind-inspired utility classes:
+
+*   **Icon Containers:** `w-12 h-12 rounded-xl flex items-center justify-center mb-6`
+*   **Social Icons:** `w-10 h-10 border border-outline-variant/30 rounded-full flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary transition-all duration-300`
+*   **Font Family:** Manrope (as defined in the Horizon Ethos Design System).

@@ -19,6 +19,13 @@ const DATE_ONLY_LABEL = new Intl.DateTimeFormat("en-IN", {
   year: "numeric",
 });
 
+const toDateValue = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const buildTimeOptions = () => {
   const options = [];
 
@@ -48,9 +55,13 @@ const getMonthStart = (dateValue) => {
   return new Date(selected.getFullYear(), selected.getMonth(), 1);
 };
 
-const formatDisplayValue = (date, time) => {
+const formatDisplayValue = (date, time, placeholder, dateOnly) => {
   if (!date && !time) {
-    return "Select date & time";
+    return placeholder;
+  }
+
+  if (dateOnly && date) {
+    return DATE_ONLY_LABEL.format(new Date(`${date}T00:00:00`));
   }
 
   if (date && time) {
@@ -65,7 +76,7 @@ const formatDisplayValue = (date, time) => {
   return selectedTime?.label || time;
 };
 
-const buildCalendarDays = (monthDate) => {
+const buildCalendarDays = (monthDate, minDate) => {
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
   const firstDay = new Date(year, month, 1);
@@ -84,11 +95,12 @@ const buildCalendarDays = (monthDate) => {
   }
 
   for (let day = 1; day <= daysInMonth; day += 1) {
-    const value = new Date(year, month, day).toISOString().split("T")[0];
+    const value = toDateValue(new Date(year, month, day));
     days.push({
       key: value,
       label: day,
       inMonth: true,
+      isUnavailable: Boolean(minDate && value < minDate),
       value,
     });
   }
@@ -105,7 +117,17 @@ const buildCalendarDays = (monthDate) => {
   return days;
 };
 
-const DateTimeField = ({ date, time, onDateChange, onTimeChange }) => {
+const DateTimeField = ({
+  date,
+  time,
+  onDateChange,
+  onTimeChange,
+  placeholder = "Select date & time",
+  timeLabel = "Select Time",
+  disabled = false,
+  dateOnly = false,
+  minDate = "",
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [draftDate, setDraftDate] = useState(date);
   const [draftTime, setDraftTime] = useState(time);
@@ -117,6 +139,12 @@ const DateTimeField = ({ date, time, onDateChange, onTimeChange }) => {
     setDraftTime(time);
     setMonthDate(getMonthStart(date));
   }, [date, time]);
+
+  useEffect(() => {
+    if (disabled) {
+      setIsOpen(false);
+    }
+  }, [disabled]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -132,10 +160,17 @@ const DateTimeField = ({ date, time, onDateChange, onTimeChange }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [date, time]);
 
-  const calendarDays = useMemo(() => buildCalendarDays(monthDate), [monthDate]);
-  const displayValue = useMemo(() => formatDisplayValue(date, time), [date, time]);
+  const calendarDays = useMemo(() => buildCalendarDays(monthDate, minDate), [monthDate, minDate]);
+  const displayValue = useMemo(
+    () => formatDisplayValue(date, time, placeholder, dateOnly),
+    [date, time, placeholder, dateOnly]
+  );
 
   const openDropdown = () => {
+    if (disabled) {
+      return;
+    }
+
     setDraftDate(date);
     setDraftTime(time);
     setMonthDate(getMonthStart(date));
@@ -144,7 +179,9 @@ const DateTimeField = ({ date, time, onDateChange, onTimeChange }) => {
 
   const applySelection = () => {
     onDateChange(draftDate);
-    onTimeChange(draftTime);
+    if (onTimeChange) {
+      onTimeChange(dateOnly ? "" : draftTime);
+    }
     setIsOpen(false);
   };
 
@@ -157,23 +194,24 @@ const DateTimeField = ({ date, time, onDateChange, onTimeChange }) => {
 
   const clearSelection = () => {
     setDraftDate("");
-    setDraftTime("");
+    setDraftTime(dateOnly ? "" : "");
   };
 
   return (
     <div className="date-time-field" ref={fieldRef}>
       <button
         type="button"
-        className={`date-time-field__trigger ${isOpen ? "date-time-field__trigger--open" : ""}`}
+        className={`date-time-field__trigger ${isOpen ? "date-time-field__trigger--open" : ""} ${disabled ? "date-time-field__trigger--disabled" : ""}`}
         onClick={openDropdown}
+        disabled={disabled}
       >
         <CalendarMonthOutlinedIcon fontSize="small" />
         <span className="date-time-field__value">{displayValue}</span>
       </button>
 
       {isOpen ? (
-        <div className="date-time-field__dropdown">
-          <div className="date-time-field__panel">
+        <div className={`date-time-field__dropdown ${dateOnly ? "date-time-field__dropdown--date-only" : ""}`}>
+          <div className={`date-time-field__panel ${dateOnly ? "date-time-field__panel--date-only" : ""}`}>
             <div className="date-time-field__calendar">
               <div className="date-time-field__header">
                 <h3>{MONTH_LABEL.format(monthDate)}</h3>
@@ -204,8 +242,8 @@ const DateTimeField = ({ date, time, onDateChange, onTimeChange }) => {
                   <button
                     type="button"
                     key={day.key}
-                    className={`date-time-field__day ${!day.inMonth ? "date-time-field__day--muted" : ""} ${draftDate === day.value ? "date-time-field__day--selected" : ""}`}
-                    disabled={!day.value}
+                    className={`date-time-field__day ${!day.inMonth ? "date-time-field__day--muted" : ""} ${day.isUnavailable ? "date-time-field__day--unavailable" : ""} ${draftDate === day.value ? "date-time-field__day--selected" : ""}`}
+                    disabled={!day.value || day.isUnavailable}
                     onClick={() => setDraftDate(day.value)}
                   >
                     {day.label}
@@ -214,24 +252,28 @@ const DateTimeField = ({ date, time, onDateChange, onTimeChange }) => {
               </div>
             </div>
 
-            <div className="date-time-field__divider" />
+            {dateOnly ? null : (
+              <>
+                <div className="date-time-field__divider" />
 
-            <div className="date-time-field__times">
-              <h3>Select Time</h3>
-              <div className="date-time-field__time-list">
-                {TIME_OPTIONS.map((option) => (
-                  <button
-                    type="button"
-                    key={option.value}
-                    className={`date-time-field__time ${draftTime === option.value ? "date-time-field__time--selected" : ""}`}
-                    onClick={() => setDraftTime(option.value)}
-                  >
-                    <span>{option.label}</span>
-                    {draftTime === option.value ? <CheckRoundedIcon fontSize="small" /> : null}
-                  </button>
-                ))}
-              </div>
-            </div>
+                <div className="date-time-field__times">
+                  <h3>{timeLabel}</h3>
+                  <div className="date-time-field__time-list">
+                    {TIME_OPTIONS.map((option) => (
+                      <button
+                        type="button"
+                        key={option.value}
+                        className={`date-time-field__time ${draftTime === option.value ? "date-time-field__time--selected" : ""}`}
+                        onClick={() => setDraftTime(option.value)}
+                      >
+                        <span>{option.label}</span>
+                        {draftTime === option.value ? <CheckRoundedIcon fontSize="small" /> : null}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="date-time-field__footer">

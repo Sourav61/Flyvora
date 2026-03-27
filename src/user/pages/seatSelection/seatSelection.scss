@@ -1,0 +1,315 @@
+@use "../../../styles/globals" as *;
+
+.seat-selection-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top center, rgba($color-primary, 0.08), transparent 32%),
+    linear-gradient(180deg, #f7f9fc 0%, #f7f9fc 48%, #f2f4f7 100%);
+
+  &--centered {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 2rem;
+  }
+
+  &__shell {
+    width: min(1200px, calc(100% - 2rem));
+    margin: 0 auto;
+  }
+
+  &__header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(#eceef1, 0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba($color-border, 0.26);
+  }
+
+  &__header-inner,
+  &__hold,
+  &__back,
+  &__legend,
+  &__perks,
+  &__summary-block > div,
+  &__summary-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  &__header-inner {
+    padding: 1rem 0;
+  }
+
+  &__back {
+    border: 0;
+    background: none;
+    color: $color-primary;
+    cursor: pointer;
+    font-weight: 700;
+  }
+
+  &__hold {
+    color: $color-primary;
+    font-weight: 700;
+  }
+
+  &__hero {
+    padding: 3rem 0 4rem;
+  }
+
+  &__hero-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) 340px;
+    gap: 1.2rem;
+    align-items: start;
+  }
+
+  &__main-card,
+  &__summary-card,
+  &__empty-card {
+    border: 1px solid rgba($color-border, 0.26);
+    border-radius: 1.25rem;
+    background: rgba($color-surface-raised, 0.95);
+    box-shadow: 0 24px 48px rgba(25, 28, 30, 0.06);
+  }
+
+  &__main-card,
+  &__summary-card,
+  &__empty-card {
+    padding: 1.4rem;
+  }
+
+  &__hero-copy h1,
+  &__empty-card h1,
+  &__summary-card h2 {
+    margin: 0;
+    font: 800 clamp(2rem, 4vw, 3rem) "Manrope", sans-serif;
+    letter-spacing: -0.04em;
+  }
+
+  &__hero-copy p,
+  &__summary-card p,
+  &__locked-note,
+  &__empty-card p {
+    color: $color-text-muted;
+    line-height: 1.7;
+  }
+
+  &__eyebrow {
+    margin: 0 0 0.7rem;
+    color: $color-primary;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  &__legend {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    margin: 1.25rem 0;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: $color-text-subtle;
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+  }
+
+  &__legend-chip {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    background: #e6e8eb;
+    display: inline-block;
+
+    &--occupied {
+      background: rgba($color-border, 0.7);
+    }
+
+    &--selected {
+      background: $color-secondary;
+    }
+  }
+
+  &__grid-shell {
+    padding: 1.5rem;
+    border-radius: 1.1rem;
+    background: $color-surface-muted;
+  }
+
+  &__plane-nose {
+    width: min(220px, 100%);
+    margin: 0 auto 1.5rem;
+    padding: 0.8rem 0;
+    border-radius: 999px 999px 0 0;
+    background: rgba($color-border, 0.28);
+    color: $color-text-subtle;
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+  }
+
+  &__column-labels,
+  &__row {
+    display: grid;
+    grid-template-columns: repeat(3, 46px) 36px repeat(3, 46px);
+    gap: 0.55rem;
+    justify-content: center;
+  }
+
+  &__column-labels {
+    margin-bottom: 0.9rem;
+    color: $color-text-subtle;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  &__row + &__row {
+    margin-top: 0.7rem;
+  }
+
+  &__aisle {
+    display: grid;
+    place-items: center;
+    color: rgba($color-text-subtle, 0.7);
+
+    &--row {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+  }
+
+  &__seat {
+    width: 46px;
+    height: 46px;
+    border: 0;
+    border-radius: 0.95rem;
+    background: #e6e8eb;
+    color: $color-text;
+    cursor: pointer;
+    font-size: 0.74rem;
+    font-weight: 800;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 28px rgba(25, 28, 30, 0.08);
+    }
+
+    &.is-occupied {
+      background: rgba($color-border, 0.7);
+      color: rgba(#ffffff, 0.85);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    &.is-selected {
+      background: $color-secondary;
+      color: #ffffff;
+      box-shadow: 0 0 0 4px rgba(#0b8e81, 0.12);
+    }
+  }
+
+  &__summary-card {
+    position: sticky;
+    top: 6.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__summary-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba($color-border, 0.22);
+
+    span {
+      color: $color-text-subtle;
+    }
+  }
+
+  &__summary-total {
+    padding-top: 0.4rem;
+    font: 800 1.08rem "Manrope", sans-serif;
+  }
+
+  &__perks {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: $color-text-subtle;
+      font-size: 0.86rem;
+    }
+  }
+
+  &__cta {
+    width: 100%;
+  }
+
+  &__locked-note {
+    margin: 0;
+  }
+}
+
+@media (max-width: 980px) {
+  .seat-selection-page {
+    &__hero-layout {
+      grid-template-columns: 1fr;
+    }
+
+    &__summary-card {
+      position: static;
+    }
+  }
+}
+
+@media (max-width: 620px) {
+  .seat-selection-page {
+    &__shell {
+      width: min(100% - 1rem, 1200px);
+    }
+
+    &__header-inner,
+    &__hero-layout,
+    &__legend,
+    &__perks,
+    &__summary-block > div,
+    &__summary-total {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    &__column-labels,
+    &__row {
+      grid-template-columns: repeat(3, 40px) 24px repeat(3, 40px);
+      gap: 0.4rem;
+    }
+
+    &__seat {
+      width: 40px;
+      height: 40px;
+      border-radius: 0.8rem;
+    }
+  }
+}

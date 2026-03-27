@@ -6,6 +6,8 @@ import List from "./admin/pages/Main/list/List";
 import Single from "./admin/pages/Main/single/Single";
 import New from "./admin/pages/Main/new/New";
 import Home from "./user/pages/home/Home";
+import SearchResults from "./user/pages/searchResults/SearchResults";
+import SeatSelection from "./user/pages/seatSelection/SeatSelection";
 import { Navigate, Routes, Route, useLocation } from "react-router-dom";
 import { productInputs, userInputs } from "./admin/formSource";
 import "./admin/style/dark.scss";
@@ -49,6 +51,8 @@ function App() {
       <ThemeProvider theme={muiTheme}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/flights" element={<SearchResults />} />
+          <Route path="/flights/:flightId" element={<SeatSelection />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/terms" element={<Terms />} />

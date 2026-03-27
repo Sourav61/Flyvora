@@ -32,6 +32,7 @@
   &__brand {
     font: 800 1.75rem "Manrope", sans-serif;
     letter-spacing: -0.04em;
+    text-decoration: none;
   }
 
   &__menu-toggle {
@@ -706,6 +707,26 @@
     &--disabled {
       opacity: 0.52;
     }
+
+    &--error {
+      background:
+        linear-gradient(180deg, rgba($color-danger-soft, 0.45), rgba($color-surface-raised, 0.96));
+
+      span {
+        color: $color-danger;
+      }
+
+      svg {
+        color: rgba($color-danger, 0.7);
+      }
+    }
+  }
+
+  &__error {
+    color: $color-danger;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.4;
   }
 
   &__control {
@@ -762,6 +783,17 @@
     align-items: center;
     justify-content: center;
     gap: 0.75rem;
+  }
+
+  &__message {
+    padding: 1rem 1.35rem;
+    border-top: 1px solid rgba($color-danger, 0.14);
+    background: rgba($color-danger-soft, 0.78);
+    color: $color-danger;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.6;
+    text-align: left;
   }
 }
 

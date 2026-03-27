@@ -1,10 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
-import FlightTakeoffOutlinedIcon from "@mui/icons-material/FlightTakeoffOutlined";
-import FlightLandOutlinedIcon from "@mui/icons-material/FlightLandOutlined";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import SyncAltRoundedIcon from "@mui/icons-material/SyncAltRounded";
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import SupportAgentOutlinedIcon from "@mui/icons-material/SupportAgentOutlined";
 import AutoAwesomeOutlinedIcon from "@mui/icons-material/AutoAwesomeOutlined";
@@ -18,9 +15,15 @@ import ContactSupportRoundedIcon from "@mui/icons-material/ContactSupportRounded
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import LoginRoundedIcon from "@mui/icons-material/LoginRounded";
-import DateTimeField from "../../components/DateTimeField";
-import StyledSelectField from "../../components/StyledSelectField";
-import TravelersField from "../../components/TravelersField";
+import { useNavigate } from "react-router-dom";
+import FlightSearchPanel from "../../components/FlightSearchPanel";
+import {
+  buildSearchPath,
+  canUnlockCabinClasses,
+  createDefaultSearchState,
+  getTodayDateValue,
+  validateSearchState,
+} from "../../search/searchUtils";
 import "./home.scss";
 
 const featuredDestinations = [
@@ -91,58 +94,26 @@ const perks = [
   },
 ];
 
-const cabinOptions = [
-  { value: "Economy", label: "Economy" },
-  { value: "Premium Economy", label: "Premium Economy" },
-  { value: "Business", label: "Business" },
-  { value: "First Class", label: "First Class" },
-];
-
-const tripOptions = [
-  { value: "round-trip", label: "Round Trip" },
-  { value: "one-way", label: "One Way" },
-];
-
 const navigationItems = [
   { label: "Flights", href: "#search-panel", isActive: true },
   { label: "Explore", href: "#destinations" },
   { label: "Support", href: "#support" },
 ];
 
-const getTodayDateValue = () => {
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, "0");
-  const day = String(today.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
 const Home = () => {
   const { isAuthenticated, isLoading, loginWithRedirect, logout, user } = useAuth0();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef(null);
-  const [filters, setFilters] = useState({
-    tripType: "round-trip",
-    source: "",
-    destination: "",
-    departureDate: "",
-    returnDate: "",
-    travelers: {
-      adults: 1,
-      children: 0,
-      cabinClass: "Economy",
-    },
-  });
+  const [filters, setFilters] = useState(createDefaultSearchState);
+  const [searchErrors, setSearchErrors] = useState({});
+  const [searchFeedback, setSearchFeedback] = useState("");
 
   const userDisplayName = user?.given_name || user?.name || "Traveler";
   const todayDateValue = getTodayDateValue();
   const returnMinDate = filters.departureDate || todayDateValue;
-  const canUnlockCabinClasses = Boolean(
-    filters.destination.trim() &&
-      filters.departureDate &&
-      (filters.tripType === "one-way" || filters.returnDate)
-  );
+  const allowCabinSelection = canUnlockCabinClasses(filters);
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
     setIsProfileMenuOpen(false);
@@ -286,18 +257,10 @@ const Home = () => {
     );
   };
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setFilters((current) => ({ ...current, [name]: value }));
-  };
-
-  const handleTripTypeChange = (event) => {
-    const { value } = event.target;
-    setFilters((current) => ({
-      ...current,
-      tripType: value,
-      returnDate: value === "one-way" ? "" : current.returnDate,
-    }));
+  const handleSearchStateChange = (nextFilters) => {
+    setFilters(nextFilters);
+    setSearchErrors({});
+    setSearchFeedback("");
   };
 
   const handleQuickRoute = (source, destination) => {
@@ -306,10 +269,21 @@ const Home = () => {
       source,
       destination,
     }));
+    setSearchErrors({});
+    setSearchFeedback("");
   };
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    const validationErrors = validateSearchState(filters);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setSearchErrors(validationErrors);
+      setSearchFeedback(Object.values(validationErrors)[0]);
+      return;
+    }
+
+    navigate(buildSearchPath(filters));
   };
 
   useEffect(() => {
@@ -336,7 +310,7 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    if (!canUnlockCabinClasses && filters.travelers.cabinClass !== "Economy") {
+    if (!allowCabinSelection && filters.travelers.cabinClass !== "Economy") {
       setFilters((current) => ({
         ...current,
         travelers: {
@@ -345,7 +319,7 @@ const Home = () => {
         },
       }));
     }
-  }, [canUnlockCabinClasses, filters.travelers.cabinClass]);
+  }, [allowCabinSelection, filters.travelers.cabinClass]);
 
   useEffect(() => {
     if (filters.returnDate && filters.returnDate < returnMinDate) {
@@ -548,92 +522,14 @@ const Home = () => {
             Experience flight booking reimagined as a digital concierge. Precision, calm, and elevated service for the modern voyager.
           </p>
 
-          <form className="search-panel" id="search-panel" onSubmit={handleSubmit}>
-            <div className="search-panel__row search-panel__row--top">
-              <label className="search-panel__field">
-                <span>Trip Preference</span>
-                <div className="search-panel__control search-panel__control--select">
-                  <SyncAltRoundedIcon fontSize="small" />
-                  <StyledSelectField
-                    className="styled-select--trip"
-                    value={filters.tripType}
-                    options={tripOptions}
-                    onChange={(nextValue) =>
-                      handleTripTypeChange({ target: { value: nextValue } })
-                    }
-                  />
-                </div>
-              </label>
-              <label className="search-panel__field">
-                <span>Departure</span>
-                <div className="search-panel__control">
-                  <FlightTakeoffOutlinedIcon fontSize="small" />
-                  <input
-                    name="source"
-                    type="text"
-                    placeholder="From where?"
-                    value={filters.source}
-                    onChange={handleChange}
-                  />
-                </div>
-              </label>
-              <label className="search-panel__field">
-                <span>Arrival</span>
-                <div className="search-panel__control">
-                  <FlightLandOutlinedIcon fontSize="small" />
-                  <input
-                    name="destination"
-                    type="text"
-                    placeholder="To where?"
-                    value={filters.destination}
-                    onChange={handleChange}
-                  />
-                </div>
-              </label>
-            </div>
-
-            <div className="search-panel__row search-panel__row--bottom">
-              <div className="search-panel__field">
-                <span>Departure Date</span>
-                <div className="search-panel__control search-panel__control--picker">
-                  <DateTimeField
-                    date={filters.departureDate}
-                    placeholder="Select departure"
-                    dateOnly
-                    minDate={todayDateValue}
-                    onDateChange={(value) => setFilters((current) => ({ ...current, departureDate: value }))}
-                  />
-                </div>
-              </div>
-              <div className={`search-panel__field ${filters.tripType === "one-way" ? "search-panel__field--disabled" : ""}`}>
-                <span>Return Date</span>
-                <div className="search-panel__control search-panel__control--picker">
-                  <DateTimeField
-                    date={filters.returnDate}
-                    placeholder={filters.tripType === "one-way" ? "One way trip" : "Select return"}
-                    dateOnly
-                    disabled={filters.tripType === "one-way"}
-                    minDate={returnMinDate}
-                    onDateChange={(value) => setFilters((current) => ({ ...current, returnDate: value }))}
-                  />
-                </div>
-              </div>
-              <div className="search-panel__field">
-                <span>Travelers</span>
-                <div className="search-panel__control search-panel__control--picker">
-                  <TravelersField
-                    value={filters.travelers}
-                    cabinOptions={cabinOptions}
-                    canSelectCabin={canUnlockCabinClasses}
-                    onChange={(value) => setFilters((current) => ({ ...current, travelers: value }))}
-                  />
-                </div>
-              </div>
-              <div className="search-panel__cta">
-                <button type="submit" className="button button--primary">Search Flights</button>
-              </div>
-            </div>
-          </form>
+          <FlightSearchPanel
+            id="search-panel"
+            value={filters}
+            onChange={handleSearchStateChange}
+            onSubmit={handleSubmit}
+            fieldErrors={searchErrors}
+            message={searchFeedback}
+          />
 
           <div className="home-page__suggestions">
             <div className="home-page__suggestions-head">

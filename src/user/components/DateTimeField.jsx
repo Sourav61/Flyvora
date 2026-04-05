@@ -177,24 +177,43 @@ const DateTimeField = ({
     setIsOpen(true);
   };
 
-  const applySelection = () => {
-    onDateChange(draftDate);
+  const commitSelection = (nextDate, nextTime = draftTime) => {
+    const resolvedTime = dateOnly ? "" : nextTime;
+
+    setDraftDate(nextDate);
+    setDraftTime(resolvedTime);
+    onDateChange(nextDate);
+
     if (onTimeChange) {
-      onTimeChange(dateOnly ? "" : draftTime);
+      onTimeChange(resolvedTime);
     }
+
     setIsOpen(false);
   };
 
-  const cancelSelection = () => {
-    setDraftDate(date);
-    setDraftTime(time);
-    setMonthDate(getMonthStart(date));
-    setIsOpen(false);
+  const handleDaySelect = (nextDate) => {
+    if (!nextDate) {
+      return;
+    }
+
+    if (dateOnly) {
+      commitSelection(nextDate, "");
+      return;
+    }
+
+    setDraftDate(nextDate);
   };
 
-  const clearSelection = () => {
-    setDraftDate("");
-    setDraftTime(dateOnly ? "" : "");
+  const handleTimeSelect = (nextTime) => {
+    const nextDate = draftDate || date;
+
+    setDraftTime(nextTime);
+
+    if (!nextDate) {
+      return;
+    }
+
+    commitSelection(nextDate, nextTime);
   };
 
   return (
@@ -244,7 +263,7 @@ const DateTimeField = ({
                     key={day.key}
                     className={`date-time-field__day ${!day.inMonth ? "date-time-field__day--muted" : ""} ${day.isUnavailable ? "date-time-field__day--unavailable" : ""} ${draftDate === day.value ? "date-time-field__day--selected" : ""}`}
                     disabled={!day.value || day.isUnavailable}
-                    onClick={() => setDraftDate(day.value)}
+                    onClick={() => handleDaySelect(day.value)}
                   >
                     {day.label}
                   </button>
@@ -264,7 +283,7 @@ const DateTimeField = ({
                         type="button"
                         key={option.value}
                         className={`date-time-field__time ${draftTime === option.value ? "date-time-field__time--selected" : ""}`}
-                        onClick={() => setDraftTime(option.value)}
+                        onClick={() => handleTimeSelect(option.value)}
                       >
                         <span>{option.label}</span>
                         {draftTime === option.value ? <CheckRoundedIcon fontSize="small" /> : null}
@@ -276,13 +295,6 @@ const DateTimeField = ({
             )}
           </div>
 
-          <div className="date-time-field__footer">
-            <button type="button" className="date-time-field__clear" onClick={clearSelection}>Clear</button>
-            <div className="date-time-field__footer-actions">
-              <button type="button" className="date-time-field__cancel" onClick={cancelSelection}>Cancel</button>
-              <button type="button" className="date-time-field__apply" onClick={applySelection}>Apply</button>
-            </div>
-          </div>
         </div>
       ) : null}
     </div>

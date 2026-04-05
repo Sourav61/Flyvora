@@ -1,0 +1,471 @@
+@use "../../../styles/globals" as *;
+
+.featured-journey-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top center, rgba($color-primary, 0.08), transparent 30%),
+    linear-gradient(180deg, #f7f9fc 0%, #f7f9fc 48%, #f2f4f7 100%);
+  color: $color-text;
+
+  &__shell {
+    width: min(1240px, calc(100% - 2rem));
+    margin: 0 auto;
+  }
+
+  &__nav {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    border-bottom: 1px solid rgba($color-border, 0.22);
+    background: rgba(#f7f9fc, 0.9);
+    backdrop-filter: blur(16px);
+  }
+
+  &__nav-inner,
+  &__actions,
+  &__links,
+  &__section-head,
+  &__cta-pills,
+  &__footer-grid {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  &__nav-inner {
+    justify-content: space-between;
+    padding: 1.15rem 0;
+  }
+
+  &__brand {
+    color: $color-text;
+    text-decoration: none;
+    font: 800 1.7rem "Manrope", sans-serif;
+    letter-spacing: -0.05em;
+  }
+
+  &__links {
+    justify-content: center;
+    flex: 1;
+
+    a,
+    span {
+      color: $color-text-muted;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .is-active,
+    a:hover {
+      color: $color-primary;
+    }
+  }
+
+  &__profile-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.35rem 0.6rem 0.35rem 0.35rem;
+    border: 1px solid rgba($color-border, 0.3);
+    border-radius: 999px;
+    background: rgba($color-surface-raised, 0.95);
+    color: $color-text;
+    text-decoration: none;
+
+    img,
+    span {
+      width: 2.15rem;
+      height: 2.15rem;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba($color-primary, 0.12);
+      color: $color-primary;
+      font-weight: 800;
+      object-fit: cover;
+    }
+  }
+
+  &__hero {
+    min-height: clamp(460px, 68vh, 860px);
+    display: flex;
+    align-items: flex-end;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+
+  &__hero-content {
+    padding: 0 0 5rem;
+    color: #ffffff;
+  }
+
+  &__eyebrow,
+  &__section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  &__eyebrow {
+    color: rgba(#ffffff, 0.82);
+  }
+
+  &__section-label {
+    color: $color-primary;
+
+    &--light {
+      color: rgba(#ffffff, 0.82);
+    }
+  }
+
+  h1,
+  h2,
+  h3,
+  p {
+    margin: 0;
+  }
+
+  h1 {
+    max-width: 12ch;
+    font: 800 clamp(4rem, 9vw, 7rem) "Manrope", sans-serif;
+    letter-spacing: -0.07em;
+    line-height: 0.92;
+  }
+
+  &__hero p {
+    max-width: 36rem;
+    margin-top: 1.15rem;
+    color: rgba(#ffffff, 0.88);
+    font-size: 1.08rem;
+    line-height: 1.8;
+  }
+
+  &__section {
+    padding: 4.5rem 0;
+
+    &--compact {
+      padding-top: 1rem;
+    }
+
+    &--cta {
+      padding-top: 0;
+      padding-bottom: 5rem;
+    }
+  }
+
+  &__intro-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 3rem;
+    align-items: start;
+  }
+
+  &__intro-grid h2,
+  &__center-copy h2,
+  &__section-head h2,
+  &__cta-card h2 {
+    font: 800 clamp(2.35rem, 4vw, 4.2rem) "Manrope", sans-serif;
+    letter-spacing: -0.055em;
+    line-height: 0.98;
+  }
+
+  &__intro-copy > p,
+  &__center-copy p,
+  &__cta-card p {
+    color: $color-text-muted;
+    line-height: 1.85;
+    font-size: 1.02rem;
+  }
+
+  &__highlight-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  &__highlight-card,
+  &__cta-card {
+    border: 1px solid rgba($color-border, 0.24);
+    border-radius: 1.6rem;
+    background: rgba($color-surface-raised, 0.96);
+    box-shadow: 0 24px 48px rgba(25, 28, 30, 0.06);
+  }
+
+  &__highlight-card {
+    padding: 1.4rem;
+
+    h3 {
+      margin-top: 0.85rem;
+      font: 800 1.12rem "Manrope", sans-serif;
+    }
+
+    p {
+      margin-top: 0.55rem;
+      color: $color-text-muted;
+      line-height: 1.7;
+    }
+  }
+
+  &__highlight-icon {
+    width: 2.7rem;
+    height: 2.7rem;
+    display: grid;
+    place-items: center;
+    border-radius: 0.9rem;
+    background: rgba($color-primary, 0.1);
+    color: $color-primary;
+  }
+
+  &__section-head {
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
+  &__secondary-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 0;
+    background: none;
+    color: $color-primary;
+    cursor: pointer;
+    font-weight: 700;
+  }
+
+  &__experience-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    grid-auto-rows: 240px;
+  }
+
+  &__experience-card,
+  &__related-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.6rem;
+    text-decoration: none;
+
+    img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.45s ease;
+    }
+
+    &:hover img {
+      transform: scale(1.04);
+    }
+  }
+
+  &__experience-card {
+    &--featured {
+      grid-column: span 2;
+      grid-row: span 2;
+    }
+  }
+
+  &__experience-overlay,
+  &__related-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(7, 18, 36, 0.08), rgba(7, 18, 36, 0.84));
+  }
+
+  &__experience-content,
+  &__related-content {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1;
+    padding: 1.35rem;
+    color: #ffffff;
+
+    span {
+      display: inline-block;
+      margin-bottom: 0.55rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 999px;
+      background: rgba(#ffffff, 0.16);
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h3 {
+      font: 800 1.35rem "Manrope", sans-serif;
+      letter-spacing: -0.04em;
+    }
+
+    p {
+      margin-top: 0.45rem;
+      color: rgba(#ffffff, 0.78);
+      line-height: 1.65;
+    }
+  }
+
+  &__center-copy {
+    max-width: 42rem;
+    margin: 0 auto 1.75rem;
+    text-align: center;
+  }
+
+  &__related-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  &__related-card {
+    min-height: 360px;
+  }
+
+  &__cta-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) auto;
+    gap: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, $color-primary 0%, #1a73e8 58%, #0c5dc8 100%);
+    color: #ffffff;
+  }
+
+  &__cta-card p {
+    max-width: 34rem;
+    margin-top: 0.95rem;
+    color: rgba(#ffffff, 0.84);
+  }
+
+  &__cta-pills {
+    flex-wrap: wrap;
+    margin-top: 1.2rem;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      min-height: 2.8rem;
+      padding: 0 1rem;
+      border-radius: 999px;
+      background: rgba(#ffffff, 0.12);
+      font-weight: 700;
+    }
+  }
+
+  &__cta-button {
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 3.65rem;
+    padding: 0 1.4rem;
+    border: 0;
+    border-radius: 999px;
+    background: #0f141a;
+    color: #ffffff;
+    cursor: pointer;
+    font: 800 1rem "Manrope", sans-serif;
+    white-space: nowrap;
+    box-shadow: 0 18px 30px rgba(12, 20, 35, 0.2);
+  }
+
+  &__footer {
+    border-top: 1px solid rgba($color-border, 0.24);
+    background: rgba(#f7f9fc, 0.92);
+  }
+
+  &__footer-grid {
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 2rem 0 3rem;
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      min-width: 0;
+    }
+
+    strong,
+    span {
+      font-weight: 800;
+      color: $color-text;
+    }
+
+    p,
+    a {
+      color: $color-text-muted;
+      line-height: 1.65;
+      text-decoration: none;
+    }
+  }
+
+  @media (max-width: 960px) {
+    &__nav-inner,
+    &__intro-grid,
+    &__cta-card,
+    &__footer-grid {
+      grid-template-columns: 1fr;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    &__links {
+      display: none;
+    }
+
+    &__experience-grid,
+    &__related-grid,
+    &__highlight-grid {
+      grid-template-columns: 1fr;
+    }
+
+    &__experience-card--featured {
+      grid-column: auto;
+      grid-row: auto;
+      min-height: 360px;
+    }
+
+    &__related-card {
+      min-height: 300px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    &__shell {
+      width: min(100%, calc(100% - 1rem));
+    }
+
+    &__hero-content {
+      padding-bottom: 2.5rem;
+    }
+
+    &__section {
+      padding: 3rem 0;
+    }
+
+    &__actions {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    &__profile-link strong {
+      display: none;
+    }
+
+    &__cta-button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}

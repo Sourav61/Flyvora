@@ -68,6 +68,7 @@
     flex-direction: column;
     gap: $spacing-sm;
 
+    span,
     label {
       color: $color-text-subtle;
       font-size: 0.78rem;
@@ -145,3 +146,4 @@
     border: 1px solid $color-border-soft;
   }
 }
+

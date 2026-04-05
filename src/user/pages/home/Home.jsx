@@ -15,7 +15,7 @@ import ContactSupportRoundedIcon from "@mui/icons-material/ContactSupportRounded
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import LoginRoundedIcon from "@mui/icons-material/LoginRounded";
-import { useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import FlightSearchPanel from "../../components/FlightSearchPanel";
 import {
   buildSearchPath,
@@ -24,36 +24,8 @@ import {
   getTodayDateValue,
   validateSearchState,
 } from "../../search/searchUtils";
+import { featuredJourneys } from "../featuredJourney/featuredJourneyData";
 import "./home.scss";
-
-const featuredDestinations = [
-  {
-    city: "The New York Experience",
-    note: "Explore Flights",
-    tag: "Featured Destination",
-    image:
-      "https://images.unsplash.com/photo-1534430480872-3498386e7856?auto=format&fit=crop&w=1200&q=80",
-    large: true,
-  },
-  {
-    city: "Neon Tokyo",
-    note: "Direct routes from Rs 740",
-    image:
-      "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    city: "London",
-    note: "Classic city departures",
-    image:
-      "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=900&q=80",
-  },
-  {
-    city: "Paris",
-    note: "Curated premium weekends",
-    image:
-      "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=900&q=80",
-  },
-];
 
 const suggestedRoutes = [
   {
@@ -102,6 +74,7 @@ const navigationItems = [
 
 const Home = () => {
   const { isAuthenticated, isLoading, loginWithRedirect, logout, user } = useAuth0();
+  const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -109,6 +82,14 @@ const Home = () => {
   const [filters, setFilters] = useState(createDefaultSearchState);
   const [searchErrors, setSearchErrors] = useState({});
   const [searchFeedback, setSearchFeedback] = useState("");
+  const featuredDestinations = featuredJourneys.slice(0, 4).map((journey) => ({
+    slug: journey.slug,
+    city: journey.city,
+    note: journey.cardNote,
+    tag: journey.cardTag,
+    image: journey.cardImage,
+    large: journey.large,
+  }));
 
   const userDisplayName = user?.given_name || user?.name || "Traveler";
   const todayDateValue = getTodayDateValue();
@@ -329,6 +310,39 @@ const Home = () => {
       }));
     }
   }, [filters.returnDate, returnMinDate]);
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const source = searchParams.get("source") || "";
+    const destination = searchParams.get("destination") || "";
+    const tripType = searchParams.get("tripType");
+
+    if (!source && !destination && !tripType) {
+      return;
+    }
+
+    setFilters((current) => ({
+      ...current,
+      source: source || current.source,
+      destination: destination || current.destination,
+      tripType: tripType === "round-trip" || tripType === "one-way" ? tripType : current.tripType,
+      returnDate: tripType === "one-way" ? "" : current.returnDate,
+    }));
+    setSearchErrors({});
+    setSearchFeedback("");
+  }, [location.search]);
+
+  useEffect(() => {
+    if (location.hash !== "#search-panel") {
+      return;
+    }
+
+    const scrollToSearchPanel = () => {
+      document.getElementById("search-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+
+    window.setTimeout(scrollToSearchPanel, 80);
+  }, [location.hash]);
 
   useEffect(() => {
     if (!isMobileMenuOpen) {
@@ -569,7 +583,11 @@ const Home = () => {
 
           <div className="destinations__grid">
             {featuredDestinations.map((item, index) => (
-              <article className={`destinations__card ${item.large ? "destinations__card--large" : ""}`} key={`${item.city}-${index}`}>
+              <Link
+                className={`destinations__card ${item.large ? "destinations__card--large" : ""}`}
+                key={`${item.city}-${index}`}
+                to={`/journeys/${item.slug}`}
+              >
                 <img src={item.image} alt={item.city} className="destinations__image" />
                 <div className="destinations__overlay" />
                 <div className="destinations__content">
@@ -577,7 +595,7 @@ const Home = () => {
                   <h3>{item.city}</h3>
                   <p>{item.note}</p>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </div>

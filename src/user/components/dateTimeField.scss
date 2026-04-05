@@ -204,8 +204,7 @@
   }
 
   &__clear,
-  &__cancel,
-  &__apply {
+  &__cancel {
     min-height: 40px;
     padding: 0 $spacing-md;
     border-radius: $radius-pill;
@@ -218,13 +217,6 @@
     border: 0;
     background: transparent;
     color: $color-text-muted;
-  }
-
-  &__apply {
-    border: 0;
-    background: linear-gradient(135deg, $color-primary, $color-primary-dark);
-    color: $color-surface-raised;
-    box-shadow: 0 12px 28px rgba($color-primary, 0.22);
   }
 
   @media (max-width: 900px) {

@@ -136,12 +136,15 @@
 
   &__search-panel {
     margin-top: 1.5rem;
-    overflow: hidden;
+    position: relative;
+    z-index: 6;
+    overflow: visible;
   }
 
   .search-panel--results {
     box-shadow: none;
     border: 0;
+    overflow: visible;
   }
 
   &__mobile-toolbar {
@@ -1188,3 +1191,4 @@
     }
   }
 }
+

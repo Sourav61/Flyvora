@@ -1,39 +1,55 @@
 .new {
-  width: 100%;
   display: flex;
+  min-height: 100vh;
+  background-color: var(--color-bg-dark-app);
+  color: var(--color-white);
 
   .newContainer {
     flex: 6;
 
     .top,
     .bottom {
-      -webkit-box-shadow: 2px 4px 10px 1px rgba(0, 0, 0, 0.47);
-      box-shadow: 2px 4px 10px 1px rgba(201, 201, 201, 0.47);
-      padding: 10px;
-      margin: 20px;
-      display: flex;
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 2rem;
+      margin: 2rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
 
+    .top {
       h1 {
-        color: lightgray;
+        color: var(--color-gray);
         font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
       }
+    }
+
+    .bottom {
+      display: flex;
 
       .left {
         flex: 1;
-        text-align: center;
+        display: flex;
+        justify-content: center;
 
         img {
-          width: 100px;
-          height: 100px;
+          width: 150px;
+          height: 150px;
           border-radius: 50%;
+          border: 2px dashed rgba(255, 255, 255, 0.1);
           object-fit: cover;
+          padding: 5px;
         }
       }
 
       .right {
         flex: 2;
 
-        .form {
+        form {
           display: flex;
           flex-wrap: wrap;
           gap: 30px;
@@ -46,30 +62,57 @@
               display: flex;
               align-items: center;
               gap: 10px;
+              color: var(--color-gray);
+              margin-bottom: 8px;
+              font-size: 14px;
+              font-weight: 600;
 
               .icon {
                 cursor: pointer;
+                color: var(--color-primary);
               }
             }
 
             input {
               width: 100%;
-              padding: 5px;
-              border: none;
-              border-bottom: 1px solid gray;
+              padding: 12px;
+              background: rgba(255, 255, 255, 0.03);
+              border: 1px solid rgba(255, 255, 255, 0.1);
+              color: var(--color-white);
+              border-radius: 8px;
+              transition: all 0.3s;
+              outline: none;
+
+              &:focus {
+                border-color: var(--color-primary);
+                box-shadow: 0 0 0 4px rgba(116, 81, 248, 0.1);
+              }
+            }
+
+            &--hidden-file {
+              input {
+                display: none;
+              }
             }
           }
 
-          button,
-          .createUser {
+          button {
             width: 150px;
-            padding: 10px;
-            border: none;
-            background-color: teal;
+            padding: 12px;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
             color: white;
             font-weight: bold;
             cursor: pointer;
             margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(116, 81, 248, 0.3);
+            transition: all 0.3s;
+
+            &:hover {
+              transform: translateY(-2px);
+              box-shadow: 0 6px 16px rgba(116, 81, 248, 0.5);
+            }
           }
         }
       }

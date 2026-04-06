@@ -1,15 +1,33 @@
 .chart {
   flex: 4;
-  -webkit-box-shadow: 2px 4px 10px 1px rgba(0, 0, 0, 0.47);
-  box-shadow: 2px 4px 10px 1px rgba(201, 201, 201, 0.47);
-  padding: 10px;
-  color: gray;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  padding: 2rem;
+  color: var(--color-gray);
+  border-radius: 20px;
+  transition: all 0.3s ease;
 
-  .title {
-    margin-bottom: 20px;
+  &:hover {
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    background: rgba(255, 255, 255, 0.04);
   }
 
+  .title {
+    margin-bottom: 2.5rem;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--color-white);
+    letter-spacing: 0.5px;
+  }
+  
   .chartGrid {
-    stroke: rgb(228, 225, 225);
+    stroke: rgba(255, 255, 255, 0.05);
+  }
+  
+  text {
+    fill: var(--color-gray) !important;
   }
 }

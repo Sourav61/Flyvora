@@ -1,0 +1,149 @@
+@use "./globals" as *;
+
+.auth-layout {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: $spacing-xl;
+  background:
+    linear-gradient(180deg, rgba($color-primary, 0.08), rgba($color-surface, 0.96)),
+    $color-surface;
+
+  &__card {
+    width: min(720px, 100%);
+    padding: $spacing-2xl;
+    border-radius: $radius-lg;
+    background: $color-surface-raised;
+    box-shadow: $shadow-md;
+    text-align: center;
+  }
+
+  &__eyebrow {
+    margin: 0 0 $spacing-md;
+    color: $color-primary;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  &__title {
+    margin: 0 0 $spacing-md;
+    font: 800 clamp(2rem, 5vw, 3rem) "Manrope", sans-serif;
+    line-height: 1.05;
+  }
+
+  &__copy {
+    margin: 0;
+    color: $color-text-muted;
+    line-height: 1.8;
+  }
+
+  &__status {
+    margin-top: $spacing-lg;
+    font-weight: 700;
+    color: $color-primary;
+
+    &--error {
+      color: $color-danger;
+    }
+  }
+
+  &__panel {
+    width: min(620px, 100%);
+    padding: $spacing-2xl;
+    border-radius: $radius-lg;
+    background: $color-surface-raised;
+    box-shadow: $shadow-md;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-lg;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+
+    span,
+    label {
+      color: $color-text-subtle;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    input {
+      height: 56px;
+      padding: 0 $spacing-md;
+      border: 1px solid $color-border-soft;
+      border-radius: $radius-md;
+      background: $color-surface;
+      color: $color-text;
+    }
+  }
+
+  &__message {
+    margin: 0;
+    color: $color-text-muted;
+    line-height: 1.7;
+
+    &--error {
+      color: $color-danger;
+      font-weight: 600;
+    }
+
+    &--success {
+      color: $color-success;
+      font-weight: 700;
+    }
+  }
+
+  &__footer {
+    margin-top: $spacing-xl;
+    display: flex;
+    justify-content: center;
+  }
+
+  &__link {
+    color: $color-primary;
+    font-weight: 600;
+    text-decoration: none;
+  }
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  min-height: 52px;
+  padding: 0 $spacing-xl;
+  border: 0;
+  border-radius: $radius-pill;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 700;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &--primary {
+    background: linear-gradient(135deg, $color-primary, $color-primary-dark);
+    color: $color-surface-raised;
+    box-shadow: 0 12px 28px rgba($color-primary, 0.22);
+  }
+
+  &--secondary {
+    background: $color-surface;
+    color: $color-primary;
+    border: 1px solid $color-border-soft;
+  }
+}
+

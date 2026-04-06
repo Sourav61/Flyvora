@@ -1,0 +1,244 @@
+@use "../../styles/globals" as *;
+
+.date-time-field {
+  position: relative;
+  width: 100%;
+
+  &__trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: $color-text;
+    cursor: pointer;
+
+    svg {
+      color: $color-primary;
+    }
+
+    &--open {
+      color: $color-primary;
+    }
+
+    &--disabled {
+      opacity: 0.48;
+      cursor: not-allowed;
+    }
+  }
+
+  &__value {
+    font-weight: 700;
+    text-align: left;
+  }
+
+  &__dropdown {
+    position: absolute;
+    top: calc(100% + #{$spacing-md});
+    left: 0;
+    z-index: 30;
+    width: min(640px, 88vw);
+    border: 1px solid rgba($color-border, 0.4);
+    border-radius: $radius-md;
+    background: $color-surface-raised;
+    box-shadow: $shadow-lg;
+    overflow: hidden;
+
+    &--date-only {
+      width: min(360px, 88vw);
+    }
+  }
+
+  &__panel {
+    display: grid;
+    grid-template-columns: 1.2fr 1px 1fr;
+    min-height: 360px;
+
+    &--date-only {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
+  }
+
+  &__calendar,
+  &__times {
+    padding: $spacing-xmd;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $spacing-md;
+    margin-bottom: $spacing-xmd;
+
+    h3 {
+      margin: 0;
+      font: 800 1.15rem "Manrope", sans-serif;
+    }
+  }
+
+  &__nav {
+    display: flex;
+    gap: $spacing-sm;
+
+    button {
+      display: grid;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 50%;
+      background: transparent;
+      color: $color-text-subtle;
+      cursor: pointer;
+    }
+  }
+
+  &__weekdays,
+  &__days {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: $spacing-sm;
+    text-align: center;
+  }
+
+  &__weekdays {
+    margin-bottom: $spacing-md;
+
+    span {
+      color: $color-text-subtle;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+  }
+
+  &__day {
+    height: 30px;
+    border: 0;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $color-text;
+    cursor: pointer;
+    font-weight: 600;
+
+    &--muted {
+      color: rgba($color-text-subtle, 0.45);
+      cursor: default;
+    }
+
+    &--selected {
+      background: $color-primary;
+      color: $color-surface-raised;
+      font-weight: 800;
+    }
+
+    &--unavailable {
+      color: rgba($color-text-subtle, 0.35);
+      cursor: not-allowed;
+    }
+  }
+
+  &__divider {
+    width: 1px;
+    background: rgba($color-border, 0.7);
+    margin: $spacing-xl 0;
+  }
+
+  &__times {
+    h3 {
+      margin: 0 0 $spacing-lg;
+      font: 800 1.15rem "Manrope", sans-serif;
+    }
+  }
+
+  &__time-list {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+    max-height: 270px;
+    overflow-y: auto;
+    padding-right: $spacing-xs;
+  }
+
+  &__time {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 48px;
+    padding: 0 $spacing-md;
+    border: 1px solid transparent;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $color-text;
+    cursor: pointer;
+    text-align: left;
+    font-weight: 600;
+
+    &--selected {
+      background: rgba($color-primary, 0.1);
+      border-color: rgba($color-primary, 0.2);
+      color: $color-primary;
+      font-weight: 800;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $spacing-md;
+    padding: $spacing-3xs;
+    background: $color-surface-muted;
+    border-top: 1px solid rgba($color-border, 0.4);
+  }
+
+  &__footer-actions {
+    display: flex;
+    gap: $spacing-sm;
+  }
+
+  &__clear,
+  &__cancel {
+    min-height: 40px;
+    padding: 0 $spacing-md;
+    border-radius: $radius-pill;
+    cursor: pointer;
+    font-weight: 700;
+  }
+
+  &__clear,
+  &__cancel {
+    border: 0;
+    background: transparent;
+    color: $color-text-muted;
+  }
+
+  @media (max-width: 900px) {
+    &__dropdown {
+      width: min(92vw, 640px);
+    }
+
+    &__panel {
+      grid-template-columns: 1fr;
+    }
+
+    &__divider {
+      display: none;
+    }
+
+    &__footer {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    &__footer-actions {
+      justify-content: flex-end;
+    }
+  }
+}

@@ -1,30 +1,38 @@
 .sidebar {
   flex: 1;
-  border-right: 0.5px solid rgb(230, 227, 227);
   min-height: 100vh;
-  min-width: 13vw;
-  background-color: white;
+  min-width: 15vw;
+  background-color: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
 
   .top {
-    height: 50px;
+    height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
 
     .logo {
-      font-size: 20px;
-      font-weight: bold;
-      color: #6439ff;
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -1px;
     }
   }
 
   hr {
     height: 0;
-    border: 0.5px solid rgb(230, 227, 227);
+    margin: 0;
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
 
   .center {
-    padding-left: 10px;
+    padding: 20px 10px;
 
     ul {
       list-style: none;
@@ -32,62 +40,52 @@
       padding: 0;
 
       .title {
-        font-size: 10px;
-        font-weight: bold;
-        color: #999;
-        margin-top: 15px;
-        margin-bottom: 5px;
+        font-size: 11px;
+        font-weight: var(--font-weight-bold);
+        color: var(--color-gray);
+        margin-top: 20px;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding-left: 10px;
       }
 
       li {
         display: flex;
         align-items: center;
-        padding: 5px;
+        padding: 12px 10px;
         cursor: pointer;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        margin-bottom: 4px;
 
         &:hover {
-          background-color: #ece8ff;
+          background-color: rgba(116, 81, 248, 0.1);
+          transform: translateX(4px);
         }
 
         .icon {
-          font-size: 18px;
-          color: #7451f8;
+          font-size: 20px;
+          color: var(--color-primary);
+          opacity: 0.8;
         }
 
         span {
-          font-size: 13px;
+          font-size: 14px;
           font-weight: 600;
-          color: #888;
-          margin-left: 10px;
+          color: var(--color-text-dark);
+          margin-left: 12px;
+          transition: color 0.3s;
+        }
+
+        &:hover span {
+          color: var(--color-white);
         }
       }
     }
   }
 
   .bottom {
-    display: flex;
-    align-items: center;
-    margin: 10px;
-
-    .colorOption {
-      width: 20px;
-      height: 20px;
-      border-radius: 5px;
-      border: 1px solid #7451f8;
-      cursor: pointer;
-      margin: 5px;
-
-      &:nth-child(1) {
-        background-color: whitesmoke;
-      }
-
-      &:nth-child(2) {
-        background-color: #333;
-      }
-
-      &:nth-child(3) {
-        background-color: darkblue;
-      }
-    }
+    display: none; /* Hide basic color switcher for this premium theme */
   }
 }

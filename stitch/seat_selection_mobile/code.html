@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Flyvora - Seat Selection</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "background": "#f7f9fc",
+              "tertiary-container": "#c55500",
+              "primary-fixed-dim": "#adc7ff",
+              "inverse-primary": "#adc7ff",
+              "tertiary": "#9e4300",
+              "on-primary-fixed": "#001a41",
+              "surface-container-low": "#f2f4f7",
+              "on-secondary-fixed-variant": "#005049",
+              "inverse-surface": "#2d3133",
+              "surface-container": "#eceef1",
+              "on-primary-fixed-variant": "#004493",
+              "primary-container": "#1a73e8",
+              "tertiary-fixed": "#ffdbcb",
+              "surface-container-highest": "#e0e3e6",
+              "on-tertiary-fixed": "#341100",
+              "on-tertiary": "#ffffff",
+              "on-secondary": "#ffffff",
+              "error-container": "#ffdad6",
+              "surface-container-high": "#e6e8eb",
+              "on-secondary-container": "#007168",
+              "on-primary": "#ffffff",
+              "error": "#ba1a1a",
+              "secondary-container": "#70f8e8",
+              "secondary": "#006a62",
+              "primary": "#005bbf",
+              "on-secondary-fixed": "#00201d",
+              "on-tertiary-fixed-variant": "#783100",
+              "surface": "#f7f9fc",
+              "outline": "#727785",
+              "tertiary-fixed-dim": "#ffb691",
+              "on-tertiary-container": "#0e0200",
+              "outline-variant": "#c1c6d6",
+              "on-surface": "#191c1e",
+              "on-error": "#ffffff",
+              "on-surface-variant": "#414754",
+              "secondary-fixed-dim": "#4fdbcc",
+              "surface-bright": "#f7f9fc",
+              "on-primary-container": "#ffffff",
+              "surface-dim": "#d8dadd",
+              "surface-variant": "#e0e3e6",
+              "secondary-fixed": "#70f8e8",
+              "inverse-on-surface": "#eff1f4",
+              "primary-fixed": "#d8e2ff",
+              "surface-tint": "#005bc0",
+              "surface-container-lowest": "#ffffff",
+              "on-error-container": "#93000a",
+              "on-background": "#191c1e"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #e0e3e6;
+        border-radius: 10px;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- Top Navigation (Shell suppressed for focused task as per mandate) -->
+<header class="sticky top-0 z-40 bg-[#f7f9fc] dark:bg-slate-900 flex justify-between items-center w-full px-6 h-16">
+<div class="flex items-center gap-4">
+<button class="hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition-colors p-2 rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined text-on-surface">arrow_back</span>
+</button>
+<h1 class="font-headline text-2xl font-bold tracking-tight text-[#1A73E8] dark:text-blue-400">Flyvora</h1>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">timer</span>
+<span class="font-label text-sm font-semibold text-primary">05:00</span>
+</div>
+</header>
+<main class="max-w-md mx-auto pb-48">
+<!-- Flight Info Anchor -->
+<section class="px-6 pt-6 pb-8">
+<div class="flex justify-between items-end mb-2">
+<div>
+<p class="font-label text-xs uppercase tracking-[0.1em] text-on-surface-variant opacity-70">Flight FV-442</p>
+<h2 class="font-headline text-3xl font-extrabold text-on-surface">London <span class="text-primary-container">→</span> Tokyo</h2>
+</div>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-surface-container-lowest rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">event_seat</span>
+</div>
+<div>
+<p class="text-sm font-semibold">Economy Premium</p>
+<p class="text-xs text-on-surface-variant">Airbus A350-1000</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-xs font-medium text-secondary">Free Upgrade</p>
+<p class="text-xs text-on-surface-variant">Selected: 12A</p>
+</div>
+</div>
+</section>
+<!-- Seat Map Legend -->
+<section class="px-6 flex justify-around mb-8">
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 rounded-sm bg-surface-container-high"></div>
+<span class="font-label text-[11px] uppercase tracking-wider text-on-surface-variant">Available</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 rounded-sm bg-outline-variant opacity-40"></div>
+<span class="font-label text-[11px] uppercase tracking-wider text-on-surface-variant">Occupied</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 rounded-sm bg-secondary"></div>
+<span class="font-label text-[11px] uppercase tracking-wider text-on-surface-variant">Selected</span>
+</div>
+</section>
+<!-- Aircraft View -->
+<div class="relative mx-auto w-72 bg-surface-container-lowest rounded-t-[120px] shadow-sm border-x border-t border-outline-variant/10 pb-12">
+<!-- Nose Gradient -->
+<div class="absolute top-0 inset-x-0 h-40 rounded-t-[120px] bg-gradient-to-b from-surface-container to-transparent opacity-30"></div>
+<!-- Rows -->
+<div class="pt-24 space-y-6">
+<!-- Row Marker -->
+<div class="grid grid-cols-7 gap-1 px-4 items-center mb-8">
+<div class="col-span-3 grid grid-cols-3 gap-1">
+<span class="text-center font-label text-[10px] text-on-surface-variant">A</span>
+<span class="text-center font-label text-[10px] text-on-surface-variant">B</span>
+<span class="text-center font-label text-[10px] text-on-surface-variant">C</span>
+</div>
+<div class="col-span-1"></div>
+<div class="col-span-3 grid grid-cols-3 gap-1">
+<span class="text-center font-label text-[10px] text-on-surface-variant">D</span>
+<span class="text-center font-label text-[10px] text-on-surface-variant">E</span>
+<span class="text-center font-label text-[10px] text-on-surface-variant">F</span>
+</div>
+</div>
+<!-- Seat Grid Generation (Visual Representation) -->
+<!-- Row 10 -->
+<div class="grid grid-cols-7 gap-1 px-4 items-center">
+<div class="col-span-3 grid grid-cols-3 gap-1">
+<button class="aspect-square bg-outline-variant/40 rounded-sm cursor-not-allowed"></button>
+<button class="aspect-square bg-outline-variant/40 rounded-sm cursor-not-allowed"></button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+</div>
+<div class="col-span-1 text-center font-label text-[10px] text-on-surface-variant opacity-40">10</div>
+<div class="col-span-3 grid grid-cols-3 gap-1">
+<button class="aspect-square bg-outline-variant/40 rounded-sm cursor-not-allowed"></button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+</div>
+</div>
+<!-- Row 11 (Exit Row Style) -->
+<div class="py-2 bg-surface-container-low/50 relative">
+<div class="absolute -left-6 top-1/2 -translate-y-1/2 px-1 py-4 bg-error-container text-[8px] font-bold text-on-error-container uppercase vertical-text rounded-r-lg" style="writing-mode: vertical-rl;">EXIT</div>
+<div class="grid grid-cols-7 gap-1 px-4 items-center">
+<div class="col-span-3 grid grid-cols-3 gap-1">
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+</div>
+<div class="col-span-1 text-center font-label text-[10px] text-on-surface-variant opacity-40">11</div>
+<div class="col-span-3 grid grid-cols-3 gap-1">
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+</div>
+</div>
+</div>
+<!-- Row 12 (Selected) -->
+<div class="grid grid-cols-7 gap-1 px-4 items-center">
+<div class="col-span-3 grid grid-cols-3 gap-1">
+<button class="aspect-square bg-secondary text-white rounded-sm active:scale-90 transition-transform flex items-center justify-center shadow-[0_0_12px_rgba(0,106,98,0.3)]">
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">check</span>
+</button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+<button class="aspect-square bg-outline-variant/40 rounded-sm cursor-not-allowed"></button>
+</div>
+<div class="col-span-1 text-center font-label text-[10px] text-on-surface-variant opacity-40">12</div>
+<div class="col-span-3 grid grid-cols-3 gap-1">
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+</div>
+</div>
+<!-- Row 13-18 Loop Simulation -->
+<div class="grid grid-cols-7 gap-1 px-4 items-center">
+<div class="col-span-3 grid grid-cols-3 gap-1">
+<button class="aspect-square bg-outline-variant/40 rounded-sm cursor-not-allowed"></button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+</div>
+<div class="col-span-1 text-center font-label text-[10px] text-on-surface-variant opacity-40">13</div>
+<div class="col-span-3 grid grid-cols-3 gap-1">
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+</div>
+</div>
+<div class="grid grid-cols-7 gap-1 px-4 items-center">
+<div class="col-span-3 grid grid-cols-3 gap-1">
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+</div>
+<div class="col-span-1 text-center font-label text-[10px] text-on-surface-variant opacity-40">14</div>
+<div class="col-span-3 grid grid-cols-3 gap-1">
+<button class="aspect-square bg-outline-variant/40 rounded-sm cursor-not-allowed"></button>
+<button class="aspect-square bg-outline-variant/40 rounded-sm cursor-not-allowed"></button>
+<button class="aspect-square bg-surface-container-high rounded-sm active:scale-90 transition-transform"></button>
+</div>
+</div>
+<!-- Gradient Fade for "Infinite" feel on mobile -->
+<div class="h-20 bg-gradient-to-t from-surface-container-lowest to-transparent"></div>
+</div>
+</div>
+</main>
+<!-- Holding Message Overlay -->
+<div class="fixed bottom-36 left-0 w-full px-6 pointer-events-none">
+<div class="bg-primary/95 backdrop-blur-md text-white px-4 py-2 rounded-full shadow-lg flex items-center justify-center gap-2 max-w-fit mx-auto animate-pulse">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">lock_clock</span>
+<p class="font-label text-xs font-semibold tracking-wide">Holding seat for you</p>
+</div>
+</div>
+<!-- Sticky Summary Panel (Glassmorphism Mandate) -->
+<footer class="fixed bottom-0 left-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-t-3xl shadow-[0px_-4px_24px_rgba(25,28,30,0.06)] border-t border-slate-200/20">
+<div class="px-6 pt-6 pb-8">
+<div class="flex items-center justify-between mb-6">
+<div>
+<p class="font-label text-[11px] uppercase tracking-wider text-on-surface-variant">Selected Seat</p>
+<div class="flex items-baseline gap-2">
+<h3 class="font-headline text-2xl font-bold text-on-surface">12A</h3>
+<span class="text-xs text-on-surface-variant">(Window)</span>
+</div>
+</div>
+<div class="text-right">
+<p class="font-label text-[11px] uppercase tracking-wider text-on-surface-variant">Upgrade Fee</p>
+<p class="font-headline text-2xl font-bold text-primary">$0.00</p>
+</div>
+</div>
+<button class="w-full bg-gradient-to-r from-primary to-primary-container text-white py-4 rounded-full font-body font-semibold flex items-center justify-center gap-3 active:scale-95 transition-transform">
+<span>Lock Seat</span>
+<span class="material-symbols-outlined text-lg">arrow_forward</span>
+</button>
+<!-- Quick Info Bar -->
+<div class="mt-4 flex justify-center gap-4 text-on-surface-variant opacity-60">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">wifi</span>
+<span class="text-[10px] font-medium uppercase tracking-tighter">Fast Wi-Fi</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">bolt</span>
+<span class="text-[10px] font-medium uppercase tracking-tighter">Power Outlet</span>
+</div>
+</div>
+</div>
+</footer>
+</body></html>

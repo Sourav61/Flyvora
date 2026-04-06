@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Flyvora | Seat Selection</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "background": "#f7f9fc",
+              "tertiary-container": "#c55500",
+              "primary-fixed-dim": "#adc7ff",
+              "inverse-primary": "#adc7ff",
+              "tertiary": "#9e4300",
+              "on-primary-fixed": "#001a41",
+              "surface-container-low": "#f2f4f7",
+              "on-secondary-fixed-variant": "#005049",
+              "inverse-surface": "#2d3133",
+              "surface-container": "#eceef1",
+              "on-primary-fixed-variant": "#004493",
+              "primary-container": "#1a73e8",
+              "tertiary-fixed": "#ffdbcb",
+              "surface-container-highest": "#e0e3e6",
+              "on-tertiary-fixed": "#341100",
+              "on-tertiary": "#ffffff",
+              "on-secondary": "#ffffff",
+              "error-container": "#ffdad6",
+              "surface-container-high": "#e6e8eb",
+              "on-secondary-container": "#007168",
+              "on-primary": "#ffffff",
+              "error": "#ba1a1a",
+              "secondary-container": "#70f8e8",
+              "secondary": "#006a62",
+              "primary": "#005bbf",
+              "on-secondary-fixed": "#00201d",
+              "on-tertiary-fixed-variant": "#783100",
+              "surface": "#f7f9fc",
+              "outline": "#727785",
+              "tertiary-fixed-dim": "#ffb691",
+              "on-tertiary-container": "#0e0200",
+              "outline-variant": "#c1c6d6",
+              "on-surface": "#191c1e",
+              "on-error": "#ffffff",
+              "on-surface-variant": "#414754",
+              "secondary-fixed-dim": "#4fdbcc",
+              "surface-bright": "#f7f9fc",
+              "on-primary-container": "#ffffff",
+              "surface-dim": "#d8dadd",
+              "surface-variant": "#e0e3e6",
+              "secondary-fixed": "#70f8e8",
+              "inverse-on-surface": "#eff1f4",
+              "primary-fixed": "#d8e2ff",
+              "surface-tint": "#005bc0",
+              "surface-container-lowest": "#ffffff",
+              "on-error-container": "#93000a",
+              "on-background": "#191c1e"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .seat-grid-container {
+            mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+        }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<nav class="w-full top-0 sticky z-50 no-border bg-[#eceef1] dark:bg-slate-800">
+<div class="flex justify-between items-center px-16 py-6 max-w-[1440px] mx-auto font-['Manrope'] tracking-tight">
+<div class="text-2xl font-bold text-[#191c1e] dark:text-white">Flyvora</div>
+<div class="hidden md:flex gap-10">
+<a class="text-[#191c1e] dark:text-slate-400 font-medium pb-1 hover:text-[#1A73E8] dark:hover:text-blue-300 transition-colors duration-200" href="#">Flights</a>
+<a class="text-[#191c1e] dark:text-slate-400 font-medium pb-1 hover:text-[#1A73E8] dark:hover:text-blue-300 transition-colors duration-200" href="#">Bookings</a>
+<a class="text-[#191c1e] dark:text-slate-400 font-medium pb-1 hover:text-[#1A73E8] dark:hover:text-blue-300 transition-colors duration-200" href="#">Explore</a>
+<a class="text-[#191c1e] dark:text-slate-400 font-medium pb-1 hover:text-[#1A73E8] dark:hover:text-blue-300 transition-colors duration-200" href="#">Support</a>
+</div>
+<div class="flex items-center gap-6">
+<button class="text-[#191c1e] dark:text-white font-medium hover:text-[#1A73E8] transition-colors">Admin</button>
+<button class="bg-primary-container text-white px-6 py-2 rounded-full font-semibold hover:scale-95 duration-150 ease-in-out transition-transform">Login</button>
+</div>
+</div>
+</nav>
+<main class="flex-grow max-w-[1440px] mx-auto w-full px-16 py-12 grid grid-cols-12 gap-12">
+<!-- Left Section: Flight Details & Seat Grid -->
+<div class="col-span-12 lg:col-span-8 space-y-16">
+<!-- Header Section -->
+<section class="space-y-4">
+<div class="flex items-center gap-2 text-primary font-semibold tracking-wider uppercase text-[11px]">
+<span class="material-symbols-outlined text-[14px]">flight_takeoff</span>
+                    Flight FV-2402 • London to New York
+                </div>
+<h1 class="font-headline text-5xl font-extrabold tracking-tight text-on-surface">Select your sanctuary</h1>
+<p class="text-on-surface-variant max-w-xl body-md">Choose your preferred seat for a journey designed around your comfort. All premium seats include increased recline and noise-canceling headsets.</p>
+</section>
+<!-- 2D Seat Map Layout -->
+<div class="surface-container rounded-xl p-12 flex flex-col items-center">
+<!-- Cockpit representation -->
+<div class="w-48 h-12 bg-surface-container-highest rounded-t-[100px] mb-16 relative flex items-center justify-center">
+<span class="text-[10px] uppercase tracking-[0.2em] font-bold text-outline">Flight Deck</span>
+</div>
+<!-- Legend -->
+<div class="flex gap-8 mb-16 px-8 py-4 bg-surface-container-low rounded-full">
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 rounded-sm bg-surface-container-high"></div>
+<span class="text-xs font-semibold uppercase tracking-wider text-outline">Available</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 rounded-sm bg-outline-variant opacity-40"></div>
+<span class="text-xs font-semibold uppercase tracking-wider text-outline">Booked</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-4 h-4 rounded-sm bg-secondary shadow-[0_0_8px_rgba(0,106,98,0.3)]"></div>
+<span class="text-xs font-semibold uppercase tracking-wider text-outline">Selected</span>
+</div>
+</div>
+<!-- Seat Grid -->
+<div class="grid grid-cols-7 gap-x-4 gap-y-6">
+<!-- Column Labels -->
+<div class="text-center text-xs font-bold text-outline">A</div>
+<div class="text-center text-xs font-bold text-outline">B</div>
+<div class="text-center text-xs font-bold text-outline">C</div>
+<div class="w-8"></div> <!-- Aisle -->
+<div class="text-center text-xs font-bold text-outline">D</div>
+<div class="text-center text-xs font-bold text-outline">E</div>
+<div class="text-center text-xs font-bold text-outline">F</div>
+<!-- Row 1 -->
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 active:scale-95 flex items-center justify-center text-[10px] font-bold text-outline-variant">1A</button>
+<button class="w-10 h-10 rounded-sm bg-outline-variant opacity-40 cursor-not-allowed flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-white">close</span>
+</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">1C</button>
+<div class="w-8 flex items-center justify-center text-[10px] font-bold text-outline/30">1</div>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">1D</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">1E</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">1F</button>
+<!-- Row 2 -->
+<button class="w-10 h-10 rounded-sm bg-secondary shadow-[0_0_12px_rgba(0,106,98,0.4)] flex items-center justify-center text-[10px] font-bold text-white">2A</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">2B</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">2C</button>
+<div class="w-8 flex items-center justify-center text-[10px] font-bold text-outline/30">2</div>
+<button class="w-10 h-10 rounded-sm bg-outline-variant opacity-40 cursor-not-allowed flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-white">close</span>
+</button>
+<button class="w-10 h-10 rounded-sm bg-outline-variant opacity-40 cursor-not-allowed flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-white">close</span>
+</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">2F</button>
+<!-- Row 3 -->
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">3A</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">3B</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">3C</button>
+<div class="w-8 flex items-center justify-center text-[10px] font-bold text-outline/30">3</div>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">3D</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">3E</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">3F</button>
+<!-- Row 4 -->
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">4A</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">4B</button>
+<button class="w-10 h-10 rounded-sm bg-outline-variant opacity-40 cursor-not-allowed flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] text-white">close</span>
+</button>
+<div class="w-8 flex items-center justify-center text-[10px] font-bold text-outline/30">4</div>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">4D</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">4E</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">4F</button>
+<!-- Row 5 (Exit Row) -->
+<div class="col-span-7 flex justify-between py-4">
+<div class="text-[9px] uppercase tracking-widest text-error font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-[12px]">emergency_home</span> EXIT
+                        </div>
+<div class="text-[9px] uppercase tracking-widest text-error font-bold flex items-center gap-2">
+                            EXIT <span class="material-symbols-outlined text-[12px]">emergency_home</span>
+</div>
+</div>
+<!-- Row 5 (Actual) -->
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">5A</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">5B</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">5C</button>
+<div class="w-8 flex items-center justify-center text-[10px] font-bold text-outline/30">5</div>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">5D</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">5E</button>
+<button class="w-10 h-10 rounded-sm bg-surface-container-high hover:bg-surface-container-lowest transition-all hover:scale-110 flex items-center justify-center text-[10px] font-bold text-outline-variant">5F</button>
+</div>
+<!-- Subtle tail of plane -->
+<div class="w-32 h-24 mt-12 bg-surface-container-high/30 rounded-b-full"></div>
+</div>
+</div>
+<!-- Right Section: Sticky Summary Sidebar -->
+<aside class="col-span-12 lg:col-span-4 h-fit sticky top-32">
+<div class="glass-panel p-8 rounded-xl shadow-[0px_24px_48px_rgba(25,28,30,0.06)] space-y-8 border border-outline-variant/10">
+<!-- Timer -->
+<div class="bg-error-container text-on-error-container px-4 py-3 rounded-lg flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px]">timer</span>
+<div class="flex flex-col">
+<span class="text-[11px] font-bold uppercase tracking-wider leading-none">Holding your seat for</span>
+<span class="text-lg font-bold">04:52 minutes</span>
+</div>
+</div>
+<!-- Flight Info Summary -->
+<div class="space-y-6">
+<h3 class="font-headline text-xl font-bold">Selection Summary</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-start">
+<div class="space-y-1">
+<p class="text-xs uppercase tracking-widest text-outline font-bold">Primary Passenger</p>
+<p class="body-md font-semibold">Julianne Moore</p>
+</div>
+<div class="bg-surface-container-high px-3 py-1 rounded-sm text-[11px] font-bold">SEAT 2A</div>
+</div>
+<div class="pt-4 border-t border-outline-variant/20 flex justify-between items-center">
+<span class="body-md text-on-surface-variant">Standard Flight</span>
+<span class="body-md font-semibold">$1,240.00</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="body-md text-on-surface-variant">Seat Preference (2A)</span>
+<span class="body-md font-semibold">$45.00</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="body-md text-on-surface-variant">Taxes &amp; Fees</span>
+<span class="body-md font-semibold">$112.40</span>
+</div>
+</div>
+<div class="pt-6 border-t border-on-surface/10 flex justify-between items-end">
+<div class="flex flex-col">
+<span class="text-xs uppercase tracking-widest text-outline font-bold">Total Amount</span>
+<span class="text-3xl font-extrabold text-primary font-headline">$1,397.40</span>
+</div>
+</div>
+</div>
+<!-- CTA -->
+<button class="w-full bg-gradient-to-r from-primary to-primary-container text-white py-5 rounded-full font-bold text-lg hover:scale-[0.98] transition-transform shadow-lg shadow-primary/20">
+                    Secure your seat
+                </button>
+<!-- Secure Payment badge -->
+<div class="flex items-center justify-center gap-2 text-outline">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+<span class="text-[11px] uppercase tracking-[0.15em] font-semibold">Encrypted Secure Checkout</span>
+</div>
+</div>
+<!-- Bento Card: Perks -->
+<div class="mt-8 grid grid-cols-2 gap-4">
+<div class="bg-surface-container p-5 rounded-xl space-y-3">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+<p class="text-[11px] font-bold uppercase tracking-wider leading-tight">Gourmet Dining</p>
+</div>
+<div class="bg-surface-container p-5 rounded-xl space-y-3">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">wifi</span>
+<p class="text-[11px] font-bold uppercase tracking-wider leading-tight">High-speed Wi-Fi</p>
+</div>
+</div>
+</aside>
+</main>
+<!-- Footer -->
+<footer class="w-full py-20 mt-auto bg-[#f7f9fc] dark:bg-slate-950 border-t border-[#c1c6d6]/20">
+<div class="grid grid-cols-2 md:grid-cols-4 gap-8 px-20 max-w-[1440px] mx-auto font-['Inter'] text-sm uppercase tracking-wider">
+<div class="space-y-6">
+<div class="text-lg font-bold text-[#191c1e] dark:text-white">Flyvora</div>
+<p class="normal-case text-slate-500 tracking-normal leading-relaxed">Redefining the altitude of personal travel.</p>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="font-bold text-on-surface">Experience</h4>
+<a class="text-slate-500 hover:text-[#1A73E8] underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100" href="#">Flights</a>
+<a class="text-slate-500 hover:text-[#1A73E8] underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100" href="#">Private Jet</a>
+<a class="text-slate-500 hover:text-[#1A73E8] underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100" href="#">Lounges</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="font-bold text-on-surface">Company</h4>
+<a class="text-slate-500 hover:text-[#1A73E8] underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100" href="#">Press</a>
+<a class="text-slate-500 hover:text-[#1A73E8] underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100" href="#">Careers</a>
+<a class="text-slate-500 hover:text-[#1A73E8] underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100" href="#">Sustainability</a>
+</div>
+<div class="flex flex-col gap-4">
+<h4 class="font-bold text-on-surface">Legal</h4>
+<a class="text-slate-500 hover:text-[#1A73E8] underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100" href="#">Privacy Policy</a>
+<a class="text-slate-500 hover:text-[#1A73E8] underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100" href="#">Terms of Service</a>
+</div>
+</div>
+<div class="max-w-[1440px] mx-auto px-20 mt-16 text-center text-xs text-outline opacity-60">
+            © 2024 Flyvora. The Digital Concierge.
+        </div>
+</footer>
+</body></html>

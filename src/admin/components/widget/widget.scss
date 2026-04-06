@@ -2,11 +2,22 @@
   display: flex;
   justify-content: space-between;
   flex: 1;
-  padding: 10px;
-  -webkit-box-shadow: 2px 4px 10px 1px rgba(0, 0, 0, 0.47);
-  box-shadow: 2px 4px 10px 1px rgba(201, 201, 201, 0.47);
-  border-radius: 10px;
-  height: 100px;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
+  height: auto;
+  min-height: 120px;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+    background: rgba(255, 255, 255, 0.04);
+  }
 
   .left,
   .right {
@@ -15,40 +26,60 @@
     justify-content: space-between;
 
     .title {
-      font-weight: bold;
+      font-weight: 700;
       font-size: 14px;
-      color: rgb(160, 160, 160);
+      color: var(--color-gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .counter {
-      font-size: 28px;
-      font-weight: 300;
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--color-white);
+      margin: 10px 0;
     }
 
     .link {
       width: max-content;
-      font-size: 12px;
-      border-bottom: 1px solid gray;
+      font-size: 13px;
+      color: var(--color-primary);
+      text-decoration: none;
+      border-bottom: 1px solid var(--color-primary);
+      padding-bottom: 2px;
+      transition: all 0.2s;
+      
+      &:hover {
+        opacity: 0.8;
+      }
     }
 
     .percentage {
       display: flex;
       align-items: center;
       font-size: 14px;
+      font-weight: 600;
 
       &.positive {
-        color: green;
+        color: #10b981; /* nicer green */
+        background: rgba(16, 185, 129, 0.1);
+        padding: 4px 8px;
+        border-radius: 6px;
       }
       &.negative {
-        color: red;
+        color: var(--color-red);
+        background: rgba(239, 68, 68, 0.1);
+        padding: 4px 8px;
+        border-radius: 6px;
       }
     }
 
     .icon {
-      font-size: 18px;
-      padding: 5px;
-      border-radius: 5px;
+      font-size: 24px;
+      padding: 8px;
+      border-radius: 12px;
       align-self: flex-end;
+      background: rgba(255, 255, 255, 0.05);
     }
   }
 }

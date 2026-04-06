@@ -1,8 +1,27 @@
 .tickets {
     display: flex;
     width: 100%;
+    min-height: 100vh;
+    background-color: var(--color-bg-dark-app);
 
     .ticketContainer {
         flex: 6;
+        padding: 2rem;
+        
+        .datatable-wrapper {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            padding: 2rem;
+            margin-top: 2rem;
+        }
     }
 }
+    .datagrid-shell {
+        height: 600px;
+        width: 100%;
+    }
+

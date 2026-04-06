@@ -3,7 +3,7 @@ import Sidebar from "../../../components/sidebar/Sidebar";
 import Navbar from "../../../components/navbar/Navbar";
 import DriveFolderUploadOutlinedIcon from "@mui/icons-material/DriveFolderUploadOutlined";
 import { useState } from "react";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../../firebase-config";
 import { useNavigate } from "react-router";
 
@@ -23,29 +23,18 @@ const New = ({ inputs, title }) => {
   const navigate = useNavigate();
 
   const addFlight = async () => {
-    console.log(airlines,
-      category,
-      seats, price, stops, departure,
-      arrival, from, to,)
-    // try {
     await addDoc(usersCollectionRef, {
-      airlines: airlines,
-      category: category,
-      seats: seats,
-      price: price,
-      stops: stops,
-      departure: departure,
-      arrival: arrival,
-      from: from,
-      to: to
+      airlines,
+      category,
+      seats,
+      price,
+      stops,
+      departure,
+      arrival,
+      from,
+      to,
     })
-    // } catch (err) {
-    //   console.log(err);
-    // }
-    // console.log(2, airlines,
-    //   category,
-    //   seats, price, stops, departure,
-    //   arrival, from, to,)
+
     navigate(-1)
   }
 
@@ -73,7 +62,7 @@ const New = ({ inputs, title }) => {
 
               <div className="form">
 
-                <div className="formInput">
+                <div className="formInput formInput--hidden-file">
                   <label htmlFor="file">
                     Image: <DriveFolderUploadOutlinedIcon className="icon" />
                   </label>
@@ -81,14 +70,12 @@ const New = ({ inputs, title }) => {
                     type="file"
                     id="file"
                     onChange={(e) => setFile(e.target.files[0])}
-                    style={{ display: "none" }}
                   />
                 </div>
                 <div className="formInput">
                   <label>Airlines</label>
                   <input type="text" placeholder="IndiGo" onChange={(e) => setAirlines(e.target.value)} />
                 </div>
-                {/* {console.log('check', airlines, seats, price, category, stops, from, to)} */}
 
                 <div className="formInput">
                   <label>Maximum Seats</label>

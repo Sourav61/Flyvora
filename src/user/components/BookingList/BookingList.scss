@@ -1,0 +1,402 @@
+@use "../../../styles/globals" as *;
+
+.booking-list-page {
+  min-height: 100vh;
+  padding: 2.5rem 0 4rem;
+  background:
+    radial-gradient(circle at top center, rgba($color-primary, 0.08), transparent 32%),
+    linear-gradient(180deg, #f7f9fc 0%, #f7f9fc 48%, #f2f4f7 100%);
+
+  &__shell {
+    width: min(1240px, calc(100% - 2rem));
+    margin: 0 auto;
+  }
+
+  &__hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 1.35rem;
+    margin-bottom: 1.5rem;
+  }
+
+  &__eyebrow {
+    margin: 0 0 0.7rem;
+    color: $color-primary;
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  h1,
+  h2,
+  p {
+    margin: 0;
+  }
+
+  h1 {
+    font: 800 clamp(2.6rem, 4vw, 4.4rem) "Manrope", sans-serif;
+    letter-spacing: -0.05em;
+    line-height: 0.95;
+  }
+
+  &__hero p,
+  &__empty-card p,
+  &__route-row p,
+  &__footnote span {
+    color: $color-text-muted;
+    line-height: 1.7;
+  }
+
+  &__hero-card,
+  &__notice,
+  &__empty-card,
+  &__card,
+  &__filters {
+    border: 1px solid rgba($color-border, 0.26);
+    border-radius: 1.4rem;
+    background: rgba($color-surface-raised, 0.96);
+    box-shadow: 0 24px 48px rgba(25, 28, 30, 0.06);
+  }
+
+  &__hero-card,
+  &__notice,
+  &__empty-card,
+  &__card,
+  &__filters {
+    padding: 1.25rem;
+  }
+
+  &__hero-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: linear-gradient(180deg, rgba($color-primary, 0.08), rgba($color-surface-raised, 0.98));
+
+    span {
+      color: $color-text-subtle;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    strong {
+      margin-top: 0.35rem;
+      font: 800 3rem "Manrope", sans-serif;
+      color: $color-primary;
+      letter-spacing: -0.06em;
+    }
+
+    p {
+      margin-top: 0.5rem;
+    }
+  }
+
+  &__notice {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: $color-text;
+    font-weight: 600;
+
+    &--error {
+      background: rgba(#ffebe9, 0.92);
+      color: $color-danger;
+    }
+  }
+
+  &__filters {
+    position: relative;
+    margin-bottom: 1rem;
+    overflow: visible;
+  }
+
+  &__filters-head {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: $color-primary;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  &__filters-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.9rem;
+    margin-top: 1rem;
+    overflow: visible;
+  }
+
+  &__filter-field {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    overflow: visible;
+
+    > span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: $color-text-subtle;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+  }
+
+  &__filter-control {
+    position: relative;
+    min-height: 3.2rem;
+    padding: 0 0.95rem;
+    overflow: visible;
+    border: 1px solid rgba($color-border, 0.28);
+    border-radius: 1rem;
+    background: linear-gradient(180deg, rgba($color-surface-muted, 0.94), rgba($color-surface-raised, 0.98));
+    box-shadow:
+      inset 0 1px 0 rgba($color-surface-raised, 0.92),
+      0 10px 20px rgba(25, 28, 30, 0.04);
+
+    .styled-select {
+      height: 100%;
+
+      &.is-open {
+        z-index: 10;
+      }
+    }
+
+    .styled-select__trigger {
+      min-height: 3.2rem;
+    }
+
+    .styled-select__menu {
+      left: -0.95rem;
+      right: -0.95rem;
+    }
+  }
+
+  &__empty-card {
+    text-align: center;
+    font-size: 3rem;
+    color: $color-primary;
+
+    h2 {
+      margin-top: 0.75rem;
+      font: 800 2rem "Manrope", sans-serif;
+      color: $color-text;
+      letter-spacing: -0.04em;
+    }
+
+    p {
+      margin: 0.75rem auto 1.25rem;
+      max-width: 34rem;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  &__card-head,
+  &__route-row,
+  &__actions,
+  &__footnote {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  &__card-head {
+    margin-bottom: 1rem;
+  }
+
+  &__card-label,
+  &__route-row span,
+  &__meta-grid span {
+    display: block;
+    color: $color-text-subtle;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  &__card-head strong,
+  &__route-row strong,
+  &__meta-grid strong {
+    display: block;
+    margin-top: 0.28rem;
+    font: 800 1.05rem "Manrope", sans-serif;
+    color: $color-text;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  &__status {
+    min-height: 2rem;
+    padding: 0 0.85rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    text-transform: capitalize;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+
+    &--success {
+      background: rgba(#ddfff3, 0.92);
+      color: #0b8e81;
+    }
+
+    &--warning {
+      background: rgba(#fff2d6, 0.92);
+      color: #a86200;
+    }
+
+    &--danger {
+      background: rgba(#ffebe9, 0.92);
+      color: $color-danger;
+    }
+
+    &--mixed {
+      background: rgba(#edf1ff, 0.92);
+      color: #4058c8;
+    }
+
+    &--neutral {
+      background: rgba(#eef3f8, 0.92);
+      color: $color-text-muted;
+    }
+  }
+
+  &__route-row {
+    align-items: flex-start;
+    padding: 1rem 0;
+    border-top: 1px solid rgba($color-border, 0.18);
+    border-bottom: 1px solid rgba($color-border, 0.18);
+  }
+
+  &__route-line {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: $color-primary;
+    text-align: center;
+
+    span {
+      margin-top: 0.35rem;
+      font-size: 0.74rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+  }
+
+  &__meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.9rem;
+    margin-top: 1rem;
+  }
+
+  &__perks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin-top: 1rem;
+    color: $color-text-muted;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+  }
+
+  &__actions {
+    margin-top: 1.1rem;
+    justify-content: flex-end;
+  }
+
+  &__pending-note {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-top: 1.1rem;
+    padding: 1rem 1.05rem;
+    border-radius: 1rem;
+    background: rgba(#fff6df, 0.88);
+    color: #8a5a00;
+
+    strong {
+      font: 800 0.94rem "Manrope", sans-serif;
+    }
+
+    span {
+      line-height: 1.65;
+    }
+  }
+
+  &__footnote {
+    margin-top: 1.25rem;
+    justify-content: flex-end;
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: $color-primary;
+      font-weight: 700;
+      text-decoration: none;
+    }
+  }
+
+  @media (max-width: 900px) {
+    padding-bottom: 8rem;
+
+    &__hero {
+      grid-template-columns: 1fr;
+    }
+
+    &__notice {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+
+    &__filters-grid,
+    &__meta-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    &__route-row,
+    &__actions,
+    &__footnote {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+
+  @media (max-width: 640px) {
+    &__shell {
+      width: min(100%, calc(100% - 1rem));
+    }
+
+    &__filters-grid,
+    &__meta-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+

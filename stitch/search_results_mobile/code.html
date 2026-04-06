@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Flyvora - Search Results</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "background": "#f7f9fc",
+              "tertiary-container": "#c55500",
+              "primary-fixed-dim": "#adc7ff",
+              "inverse-primary": "#adc7ff",
+              "tertiary": "#9e4300",
+              "on-primary-fixed": "#001a41",
+              "surface-container-low": "#f2f4f7",
+              "on-secondary-fixed-variant": "#005049",
+              "inverse-surface": "#2d3133",
+              "surface-container": "#eceef1",
+              "on-primary-fixed-variant": "#004493",
+              "primary-container": "#1a73e8",
+              "tertiary-fixed": "#ffdbcb",
+              "surface-container-highest": "#e0e3e6",
+              "on-tertiary-fixed": "#341100",
+              "on-tertiary": "#ffffff",
+              "on-secondary": "#ffffff",
+              "error-container": "#ffdad6",
+              "surface-container-high": "#e6e8eb",
+              "on-secondary-container": "#007168",
+              "on-primary": "#ffffff",
+              "error": "#ba1a1a",
+              "secondary-container": "#70f8e8",
+              "secondary": "#006a62",
+              "primary": "#005bbf",
+              "on-secondary-fixed": "#00201d",
+              "on-tertiary-fixed-variant": "#783100",
+              "surface": "#f7f9fc",
+              "outline": "#727785",
+              "tertiary-fixed-dim": "#ffb691",
+              "on-tertiary-container": "#0e0200",
+              "outline-variant": "#c1c6d6",
+              "on-surface": "#191c1e",
+              "on-error": "#ffffff",
+              "on-surface-variant": "#414754",
+              "secondary-fixed-dim": "#4fdbcc",
+              "surface-bright": "#f7f9fc",
+              "on-primary-container": "#ffffff",
+              "surface-dim": "#d8dadd",
+              "surface-variant": "#e0e3e6",
+              "secondary-fixed": "#70f8e8",
+              "inverse-on-surface": "#eff1f4",
+              "primary-fixed": "#d8e2ff",
+              "surface-tint": "#005bc0",
+              "surface-container-lowest": "#ffffff",
+              "on-error-container": "#93000a",
+              "on-background": "#191c1e"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      body { background-color: #f7f9fc; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body text-on-surface antialiased pb-24">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-40 bg-[#f7f9fc] dark:bg-slate-900 flex justify-between items-center w-full px-6 h-16">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#1A73E8] dark:text-blue-400 cursor-pointer active:scale-95 duration-200">menu</span>
+<h1 class="font-['Manrope'] text-2xl font-bold tracking-tight text-[#1A73E8] dark:text-blue-400">Flyvora</h1>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden border border-outline-variant/20">
+<img alt="User profile avatar" class="w-full h-full object-cover" data-alt="Portrait of a smiling professional traveler" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQe8eSdPHlQq_jPX7VSQQy59Zv5sdT0nC73OBSxjRt9V0l7a-nD323ZyTjaf_QDfOPvbnswFyx5G-kq9xC_NHw27AUt0nsarkDvxMvQ7Qksw3fVkeZA2NL3ukoUDx9o7doZerjMxlRLdbfF-dUX0D4mn7_0WPaadq6OgKmiXKaTPOnCTQyH1RaeOqwe2ld41GHvjsIQvIup2zdeZzdYLGUG0PjPg5ZmFgeAsPHGm-1aprH3yt_jolGLRFqahKm0kXF8zQRwkHjBaY"/>
+</div>
+</header>
+<main class="px-4 pt-4">
+<!-- Search Context Summary -->
+<div class="mb-6 flex items-center justify-between">
+<div>
+<h2 class="font-headline text-on-surface text-xl font-bold leading-tight">London to New York</h2>
+<p class="font-label text-on-surface-variant text-sm tracking-tight">12 Oct • 1 Passenger • Economy</p>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-low text-primary active:scale-95 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">edit</span>
+</button>
+</div>
+<!-- Filters: Pill-style layout -->
+<section class="flex gap-2 overflow-x-auto pb-4 scrollbar-hide no-scrollbar">
+<button class="flex items-center gap-1.5 px-4 py-2 bg-primary-container text-on-primary-container rounded-full text-sm font-semibold whitespace-nowrap shadow-sm">
+<span class="material-symbols-outlined text-lg">filter_list</span>
+<span>Filters</span>
+</button>
+<button class="px-4 py-2 bg-surface-container-lowest border border-outline-variant/10 text-on-surface rounded-full text-sm font-medium whitespace-nowrap">
+                Cheapest
+            </button>
+<button class="px-4 py-2 bg-surface-container-lowest border border-outline-variant/10 text-on-surface rounded-full text-sm font-medium whitespace-nowrap">
+                Non-stop
+            </button>
+<button class="px-4 py-2 bg-surface-container-lowest border border-outline-variant/10 text-on-surface rounded-full text-sm font-medium whitespace-nowrap">
+                Airlines
+            </button>
+</section>
+<!-- Flight Cards List -->
+<div class="space-y-4">
+<!-- Card 1: Featured/Smart Price -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0px_24px_48px_rgba(25,28,30,0.04)] relative overflow-hidden group active:scale-[0.98] transition-all">
+<div class="absolute top-0 right-0">
+<div class="bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-bl-lg">
+                        Best Value
+                    </div>
+</div>
+<div class="flex items-center gap-3 mb-5">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl">flight_takeoff</span>
+</div>
+<span class="font-headline font-bold text-on-surface text-sm">British Airways</span>
+</div>
+<div class="flex justify-between items-center mb-6">
+<div class="text-left">
+<div class="text-xl font-bold font-headline">08:20</div>
+<div class="text-[11px] font-bold text-outline uppercase tracking-wider">LHR</div>
+</div>
+<div class="flex-1 px-4 flex flex-col items-center">
+<div class="text-[10px] text-outline font-medium mb-1">7h 55m</div>
+<div class="w-full h-[2px] bg-surface-container relative">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary"></div>
+</div>
+<div class="text-[10px] text-secondary font-bold mt-1 uppercase tracking-tighter">Non-stop</div>
+</div>
+<div class="text-right">
+<div class="text-xl font-bold font-headline">11:15</div>
+<div class="text-[11px] font-bold text-outline uppercase tracking-wider">JFK</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-surface-container">
+<div class="flex flex-col">
+<span class="text-[10px] text-outline font-semibold uppercase">Total Price</span>
+<div class="text-2xl font-extrabold text-primary font-headline tracking-tight">$452</div>
+</div>
+<button class="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-bold shadow-lg shadow-primary/20 active:scale-95 transition-transform">
+                        Select
+                    </button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0px_24px_48px_rgba(25,28,30,0.04)] active:scale-[0.98] transition-all">
+<div class="flex items-center gap-3 mb-5">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl">flight_takeoff</span>
+</div>
+<span class="font-headline font-bold text-on-surface text-sm">Virgin Atlantic</span>
+</div>
+<div class="flex justify-between items-center mb-6">
+<div class="text-left">
+<div class="text-xl font-bold font-headline">10:45</div>
+<div class="text-[11px] font-bold text-outline uppercase tracking-wider">LHR</div>
+</div>
+<div class="flex-1 px-4 flex flex-col items-center">
+<div class="text-[10px] text-outline font-medium mb-1">8h 10m</div>
+<div class="w-full h-[2px] bg-surface-container relative">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary"></div>
+</div>
+<div class="text-[10px] text-secondary font-bold mt-1 uppercase tracking-tighter">Non-stop</div>
+</div>
+<div class="text-right">
+<div class="text-xl font-bold font-headline">13:55</div>
+<div class="text-[11px] font-bold text-outline uppercase tracking-wider">JFK</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-surface-container">
+<div class="flex flex-col">
+<span class="text-[10px] text-outline font-semibold uppercase">Total Price</span>
+<div class="text-2xl font-extrabold text-on-surface font-headline tracking-tight">$489</div>
+</div>
+<button class="bg-surface-container-highest text-on-surface px-6 py-2.5 rounded-full text-sm font-bold active:scale-95 transition-transform">
+                        Select
+                    </button>
+</div>
+</div>
+<!-- Card 3: Multi-stop -->
+<div class="bg-surface-container-lowest rounded-xl p-5 shadow-[0px_24px_48px_rgba(25,28,30,0.04)] active:scale-[0.98] transition-all">
+<div class="flex items-center gap-3 mb-5">
+<div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-xl">flight_takeoff</span>
+</div>
+<span class="font-headline font-bold text-on-surface text-sm">Lufthansa</span>
+</div>
+<div class="flex justify-between items-center mb-6">
+<div class="text-left">
+<div class="text-xl font-bold font-headline">06:15</div>
+<div class="text-[11px] font-bold text-outline uppercase tracking-wider">LHR</div>
+</div>
+<div class="flex-1 px-4 flex flex-col items-center">
+<div class="text-[10px] text-outline font-medium mb-1">11h 45m</div>
+<div class="w-full h-[2px] bg-surface-container relative">
+<div class="absolute top-1/2 left-1/3 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-tertiary"></div>
+</div>
+<div class="text-[10px] text-tertiary font-bold mt-1 uppercase tracking-tighter">1 Stop (FRA)</div>
+</div>
+<div class="text-right">
+<div class="text-xl font-bold font-headline">18:00</div>
+<div class="text-[11px] font-bold text-outline uppercase tracking-wider">JFK</div>
+</div>
+</div>
+<div class="flex items-center justify-between pt-4 border-t border-surface-container">
+<div class="flex flex-col">
+<span class="text-[10px] text-outline font-semibold uppercase">Total Price</span>
+<div class="text-2xl font-extrabold text-on-surface font-headline tracking-tight">$395</div>
+</div>
+<button class="bg-surface-container-highest text-on-surface px-6 py-2.5 rounded-full text-sm font-bold active:scale-95 transition-transform">
+                        Select
+                    </button>
+</div>
+</div>
+</div>
+<!-- Pagination/Load more (Subtle) -->
+<div class="py-12 flex flex-col items-center">
+<p class="text-[11px] font-bold text-outline uppercase tracking-[0.2em] mb-4">Viewing 3 of 42 Flights</p>
+<div class="h-1 w-24 bg-surface-container rounded-full overflow-hidden">
+<div class="h-full w-1/4 bg-primary rounded-full"></div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl z-50 rounded-t-3xl shadow-[0px_-4px_24px_rgba(25,28,30,0.06)] border-t border-slate-200/20 dark:border-slate-800/20">
+<!-- Home -->
+<div class="flex flex-col items-center justify-center text-[#191c1e] dark:text-slate-400 px-4 py-2 hover:text-[#1A73E8] dark:hover:text-blue-300 tap-highlight-transparent active:scale-90 transition-all cursor-pointer">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider">Home</span>
+</div>
+<!-- Search (Active) -->
+<div class="flex flex-col items-center justify-center bg-[#1A73E8] text-white rounded-2xl px-4 py-2 scale-110 transition-transform cursor-pointer">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">search</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider">Search</span>
+</div>
+<!-- My Trips -->
+<div class="flex flex-col items-center justify-center text-[#191c1e] dark:text-slate-400 px-4 py-2 hover:text-[#1A73E8] dark:hover:text-blue-300 tap-highlight-transparent active:scale-90 transition-all cursor-pointer">
+<span class="material-symbols-outlined mb-1">travel_explore</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider">My Trips</span>
+</div>
+<!-- Profile -->
+<div class="flex flex-col items-center justify-center text-[#191c1e] dark:text-slate-400 px-4 py-2 hover:text-[#1A73E8] dark:hover:text-blue-300 tap-highlight-transparent active:scale-90 transition-all cursor-pointer">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-['Inter'] text-[11px] font-medium uppercase tracking-wider">Profile</span>
+</div>
+</nav>
+</body></html>

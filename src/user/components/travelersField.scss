@@ -1,0 +1,184 @@
+@use "../../styles/globals" as *;
+
+.travelers-field {
+  position: relative;
+  width: 100%;
+
+  &__trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: $color-text;
+    cursor: pointer;
+    text-align: left;
+
+    svg:first-child {
+      color: $color-primary;
+    }
+
+    svg:last-child {
+      margin-left: auto;
+      color: $color-text-subtle;
+    }
+
+    &--open {
+      color: $color-primary;
+    }
+  }
+
+  &__value {
+    font-weight: 700;
+  }
+
+  &__dropdown {
+    position: absolute;
+    top: calc(100% + #{$spacing-md});
+    left: 0;
+    z-index: 30;
+    width: min(392px, 86vw);
+    border: 1px solid rgba($color-border, 0.4);
+    border-radius: $radius-md;
+    background: $color-surface-raised;
+    box-shadow: $shadow-lg;
+    overflow: hidden;
+    text-align: left;
+  }
+
+  &__section {
+    padding: $spacing-xmd $spacing-xmd $spacing-lg;
+  }
+
+  &__section-head {
+    margin-bottom: $spacing-md;
+
+    h3 {
+      margin: 0 0 0.35rem;
+      font: 800 1.05rem "Manrope", sans-serif;
+    }
+
+    p {
+      margin: 0;
+      color: $color-text-muted;
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+  }
+
+  &__select-wrap {
+    min-height: 52px;
+    padding: 0 1rem;
+    border: 1px solid rgba($color-border, 0.28);
+    border-radius: 0.95rem;
+    background: linear-gradient(180deg, rgba($color-surface-muted, 0.94), rgba($color-surface-raised, 0.98));
+    box-shadow:
+      inset 0 1px 0 rgba($color-surface-raised, 0.92),
+      0 10px 20px rgba(25, 28, 30, 0.04);
+
+    .styled-select {
+      height: 100%;
+    }
+
+    .styled-select__trigger {
+      min-height: 52px;
+    }
+
+    .styled-select__menu {
+      left: -1rem;
+      right: -1rem;
+    }
+
+    .styled-select.is-disabled {
+      .styled-select__trigger {
+        opacity: 1;
+        color: $color-text;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  &__counter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $spacing-md;
+    padding: 0 $spacing-xmd $spacing-lg;
+  }
+
+  &__counter-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    strong {
+      font: 800 1rem "Manrope", sans-serif;
+    }
+
+    span {
+      color: $color-text-muted;
+      line-height: 1.5;
+    }
+  }
+
+  &__stepper {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.8rem;
+
+    span {
+      min-width: 1rem;
+      font: 800 1.1rem "Manrope", sans-serif;
+      text-align: center;
+    }
+
+    button {
+      width: 36px;
+      height: 36px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 0.75rem;
+      background: #dfe5ea;
+      color: $color-text;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+  }
+
+  &__note {
+    margin: 0;
+    padding: 0 $spacing-xmd $spacing-md;
+    color: $color-text-muted;
+    font-size: 0.95rem;
+    line-height: 1.65;
+  }
+
+  &__footer {
+    padding: $spacing-sm $spacing-xmd $spacing-xmd;
+  }
+
+  &__apply {
+    width: 100%;
+    min-height: 48px;
+    border: 0;
+    border-radius: $radius-sm;
+    background: linear-gradient(135deg, $color-primary, $color-primary-dark);
+    color: $color-surface-raised;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 14px 28px rgba($color-primary, 0.2);
+  }
+
+  @media (max-width: 620px) {
+    &__dropdown {
+      width: min(92vw, 392px);
+    }
+  }
+}

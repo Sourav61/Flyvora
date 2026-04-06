@@ -1,0 +1,918 @@
+@use "../../../styles/globals" as *;
+
+.seat-selection-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top center, rgba($color-primary, 0.08), transparent 32%),
+    linear-gradient(180deg, #f7f9fc 0%, #f7f9fc 48%, #f2f4f7 100%);
+
+  &--centered {
+    min-height: 100vh;
+    display: grid;
+    place-items: center;
+    padding: 2rem;
+  }
+
+  &__shell {
+    width: min(1280px, calc(100% - 2rem));
+    margin: 0 auto;
+  }
+
+  &__header {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: rgba(#eceef1, 0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba($color-border, 0.26);
+  }
+
+  &__header-inner,
+  &__header-brand-group,
+  &__back,
+  &__hold,
+  &__legend,
+  &__summary-passenger,
+  &__summary-lines > div,
+  &__summary-total,
+  &__mobile-summary-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  &__header-inner {
+    padding: 1rem 0;
+  }
+
+  &__header-brand-group {
+    justify-content: flex-start;
+    gap: 0.9rem;
+  }
+
+  &__brand {
+    color: $color-primary;
+    text-decoration: none;
+    font: 800 1.6rem "Manrope", sans-serif;
+    letter-spacing: -0.05em;
+  }
+
+  &__back {
+    border: 0;
+    background: none;
+    color: $color-text;
+    cursor: pointer;
+    font-weight: 700;
+  }
+
+  &__hold {
+    padding: 0.65rem 0.9rem;
+    border-radius: 999px;
+    background: rgba($color-primary, 0.08);
+    color: $color-primary;
+    font-weight: 800;
+
+    &--warning {
+      background: rgba(#ffb17a, 0.22);
+      color: #b35523;
+    }
+
+    &--expired {
+      background: rgba(#ffd9d4, 0.75);
+      color: #b03621;
+    }
+  }
+
+  &__hero {
+    padding: 3rem 0 4rem;
+  }
+
+  &__hero-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 1.4rem;
+    align-items: start;
+  }
+
+  &__main-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.35rem;
+  }
+
+  &__intro,
+  &__summary-card,
+  &__empty-card,
+  &__flight-meta,
+  &__aircraft-frame,
+  &__timer-card,
+  &__perk-card {
+    border: 1px solid rgba($color-border, 0.26);
+    border-radius: 1.3rem;
+    background: rgba($color-surface-raised, 0.95);
+    box-shadow: 0 24px 48px rgba(25, 28, 30, 0.06);
+  }
+
+  &__intro,
+  &__summary-card,
+  &__empty-card,
+  &__flight-meta,
+  &__aircraft-frame,
+  &__timer-card {
+    padding: 1.35rem;
+  }
+
+  &__intro h1,
+  &__empty-card h1,
+  &__summary-card h2 {
+    margin: 0;
+    color: $color-text;
+    font: 800 clamp(2.3rem, 4vw, 4.3rem) "Manrope", sans-serif;
+    letter-spacing: -0.05em;
+  }
+
+  &__intro p,
+  &__empty-card p,
+  &__locked-note,
+  &__mobile-summary-row p {
+    color: $color-text-muted;
+    line-height: 1.7;
+  }
+
+  &__empty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  &__eyebrow {
+    margin: 0 0 0.7rem;
+    color: $color-primary;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+
+    &--route {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      margin-bottom: 0.9rem;
+      color: $color-primary;
+    }
+  }
+
+  &__flight-meta {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  &__flight-meta-icon {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: rgba($color-primary, 0.08);
+    color: $color-primary;
+  }
+
+  &__flight-meta-copy,
+  &__flight-meta-status,
+  &__summary-seat-badge,
+  &__timer-card div,
+  &__mobile-summary-row div,
+  &__summary-meta > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.18rem;
+  }
+
+  &__flight-meta-copy strong,
+  &__flight-meta-status strong,
+  &__summary-passenger strong,
+  &__summary-lines strong,
+  &__summary-meta strong,
+  &__summary-total strong,
+  &__perk-card strong {
+    color: $color-text;
+  }
+
+  &__flight-meta-copy strong,
+  &__flight-meta-status strong,
+  &__summary-passenger strong,
+  &__summary-meta strong {
+    font: 800 1rem "Manrope", sans-serif;
+  }
+
+  &__flight-meta-copy span,
+  &__flight-meta-status span,
+  &__summary-passenger span,
+  &__summary-lines span,
+  &__summary-meta span,
+  &__summary-total span,
+  &__timer-card span,
+  &__mobile-summary-row span,
+  &__mobile-summary-price span,
+  &__secure-note span {
+    color: $color-text-subtle;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  &__flight-meta-status {
+    text-align: right;
+    justify-self: end;
+  }
+
+  &__legend {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    padding: 0 0.2rem;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      color: $color-text-subtle;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+  }
+
+  &__legend-chip {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    background: #e6e8eb;
+    display: inline-block;
+
+    &--reserved {
+      background: rgba(#d9851f, 0.9);
+      box-shadow: 0 0 0 5px rgba(#d9851f, 0.14);
+    }
+
+    &--occupied {
+      background: rgba($color-border, 0.6);
+    }
+
+    &--selected {
+      background: $color-secondary;
+      box-shadow: 0 0 0 5px rgba(#0b8e81, 0.12);
+    }
+  }
+
+  &__aircraft-frame {
+    padding: 1.6rem 1.6rem 2rem;
+    overflow: hidden;
+  }
+
+  &__aircraft-nose {
+    width: min(240px, 100%);
+    margin: 0 auto;
+    padding: 0.85rem 0;
+    border-radius: 999px 999px 0 0;
+    background: linear-gradient(180deg, rgba($color-border, 0.28), rgba($color-border, 0.14));
+    color: $color-text-subtle;
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  &__aircraft-stage {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    margin-top: -1px;
+  }
+
+  &__aircraft-wing {
+    position: absolute;
+    top: 33%;
+    width: 180px;
+    height: 130px;
+    background: linear-gradient(180deg, rgba($color-surface-muted, 0.95), rgba($color-border, 0.26));
+    box-shadow: inset 0 0 0 1px rgba($color-border, 0.12);
+    z-index: 0;
+
+    &--left {
+      left: calc(50% - 310px);
+      border-radius: 1.8rem 8rem 2rem 3rem;
+      transform: rotate(-7deg);
+    }
+
+    &--right {
+      right: calc(50% - 310px);
+      border-radius: 8rem 1.8rem 3rem 2rem;
+      transform: rotate(7deg);
+    }
+  }
+
+  &__aircraft-fuselage {
+    position: relative;
+    z-index: 1;
+    width: min(510px, 100%);
+    padding: 2.1rem 2rem 3rem;
+    border-radius: 160px 160px 2.4rem 2.4rem;
+    background:
+      radial-gradient(circle at top center, rgba(#ffffff, 0.85), transparent 30%),
+      linear-gradient(180deg, rgba($color-surface-raised, 0.98), rgba($color-surface-muted, 0.92));
+    border: 1px solid rgba($color-border, 0.18);
+    box-shadow: inset 0 0 0 1px rgba(#ffffff, 0.55);
+  }
+
+  &__column-labels,
+  &__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 42px minmax(0, 1fr);
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  &__column-labels {
+    margin-bottom: 1rem;
+  }
+
+  &__seat-bank-labels,
+  &__seat-bank {
+    display: grid;
+    grid-template-columns: repeat(3, 48px);
+    gap: 0.55rem;
+    justify-content: center;
+  }
+
+  &__seat-bank-labels {
+    color: $color-text-subtle;
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    text-align: center;
+  }
+
+  &__seat-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.72rem;
+  }
+
+  &__exit-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 0.45rem;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: #b03621;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+  }
+
+  &__aisle {
+    display: grid;
+    place-items: center;
+    min-height: 100%;
+
+    &--row {
+      color: rgba($color-text-subtle, 0.55);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+  }
+
+  &__seat {
+    width: 48px;
+    height: 48px;
+    border: 0;
+    border-radius: 0.5rem;
+    background: rgba($color-border, 0.16);
+    color: rgba($color-text-subtle, 0.9);
+    cursor: pointer;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    box-shadow: inset 0 0 0 1px rgba($color-border, 0.12);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+
+    svg {
+      font-size: 1rem;
+    }
+
+    &:hover {
+      transform: translateY(-1px);
+      background: rgba(#ffffff, 0.95);
+      box-shadow: 0 12px 24px rgba(25, 28, 30, 0.08);
+    }
+
+    &.is-occupied {
+      background: rgba($color-border, 0.52);
+      color: rgba(#ffffff, 0.82);
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    &.is-reserved {
+      background: rgba(#d9851f, 0.18);
+      color: #b56710;
+      cursor: not-allowed;
+      box-shadow: inset 0 0 0 1px rgba(#d9851f, 0.28);
+    }
+
+    &.is-selected {
+      background: $color-secondary;
+      color: #ffffff;
+      box-shadow: 0 0 0 6px rgba(#0b8e81, 0.12), 0 14px 24px rgba(#0b8e81, 0.22);
+    }
+  }
+
+  &__aircraft-tail {
+    width: 120px;
+    margin: 1rem auto 0;
+    padding-top: 0.4rem;
+    display: flex;
+    justify-content: center;
+  }
+
+  &__aircraft-tail-fin {
+    width: 100%;
+    height: 88px;
+    border-radius: 1.8rem 1.8rem 999px 999px;
+    background: linear-gradient(180deg, rgba($color-border, 0.22), rgba($color-border, 0.08));
+  }
+
+  &__summary-column {
+    position: sticky;
+    top: 6.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__timer-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    color: #b03621;
+
+    strong {
+      font: 800 1.2rem "Manrope", sans-serif;
+      color: currentColor;
+    }
+
+    &--active {
+      background: rgba(#ffe0dc, 0.82);
+    }
+
+    &--warning {
+      background: rgba(#ffe6d4, 0.9);
+      color: #b35523;
+    }
+
+    &--expired {
+      background: rgba(#ffd9d4, 0.95);
+      color: #9d2317;
+    }
+  }
+
+  &__summary-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__summary-card h2 {
+    font-size: 1.4rem;
+  }
+
+  &__summary-seat-badge {
+    padding: 0.5rem 0.85rem;
+    border-radius: 999px;
+    background: rgba($color-surface-muted, 0.95);
+    color: $color-text;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  &__summary-lines,
+  &__summary-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba($color-border, 0.2);
+  }
+
+  &__summary-total {
+    padding-top: 0.2rem;
+    border-top: 1px solid rgba($color-border, 0.2);
+  }
+
+  &__summary-total strong {
+    color: $color-primary;
+    font: 800 2.2rem "Manrope", sans-serif;
+    line-height: 1;
+  }
+
+  &__cta,
+  &__mobile-cta {
+    width: 100%;
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+  }
+
+  &__secure-note {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    color: $color-text-subtle;
+    font-size: 0.78rem;
+  }
+
+  &__locked-note {
+    margin: 0;
+  }
+
+  &__perks-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+  }
+
+  &__perk-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    padding: 1rem;
+    color: #0b8e81;
+
+    strong {
+      font-size: 0.78rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+  }
+
+  &__mobile-hold-chip,
+  &__mobile-footer {
+    display: none;
+  }
+}
+
+@media (max-width: 1100px) {
+  .seat-selection-page {
+    &__aircraft-wing {
+      width: 150px;
+      height: 116px;
+
+      &--left {
+        left: calc(50% - 270px);
+      }
+
+      &--right {
+        right: calc(50% - 270px);
+      }
+    }
+  }
+}
+
+@media (max-width: 980px) {
+  .seat-selection-page {
+    &__hero-layout {
+      grid-template-columns: 1fr;
+    }
+
+    &__summary-column {
+      position: static;
+    }
+  }
+}
+
+@media (max-width: 760px) {
+  .seat-selection-page {
+    &__shell {
+      width: min(100% - 1.5rem, 1280px);
+    }
+
+    &__header-inner {
+      padding: 0.85rem 0;
+    }
+
+    &__back span {
+      display: none;
+    }
+
+    &__brand {
+      font-size: 1.5rem;
+    }
+
+    &__hold {
+      padding: 0;
+      background: none;
+    }
+
+    &__hero {
+      padding: 1.15rem 0 12.5rem;
+    }
+
+    &__hero-layout {
+      gap: 1rem;
+    }
+
+    &__summary-column {
+      display: none;
+    }
+
+    &__intro,
+    &__flight-meta,
+    &__aircraft-frame {
+      padding: 1.05rem;
+      border-radius: 1.15rem;
+    }
+
+    &__intro h1 {
+      font-size: 2.5rem;
+    }
+
+    &__intro p {
+      font-size: 0.92rem;
+    }
+
+    &__eyebrow--route {
+      font-size: 0.62rem;
+    }
+
+    &__flight-meta {
+      grid-template-columns: auto 1fr auto;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    &__flight-meta-icon {
+      width: 42px;
+      height: 42px;
+    }
+
+    &__flight-meta-copy strong,
+    &__flight-meta-status strong {
+      font-size: 0.95rem;
+    }
+
+    &__flight-meta-copy span,
+    &__flight-meta-status span {
+      font-size: 0.68rem;
+    }
+
+    &__legend {
+      justify-content: space-between;
+      gap: 0.65rem;
+      padding: 0 0.2rem;
+
+      span {
+        font-size: 0.62rem;
+        letter-spacing: 0.12em;
+      }
+    }
+
+    &__aircraft-frame {
+      padding: 1.05rem 0.8rem 1.6rem;
+    }
+
+    &__aircraft-nose {
+      width: 190px;
+      padding: 0.7rem 0;
+      font-size: 0.64rem;
+    }
+
+    &__aircraft-wing {
+      top: 26%;
+      width: 88px;
+      height: 84px;
+
+      &--left {
+        left: calc(50% - 188px);
+        border-radius: 1.1rem 3rem 1rem 1.7rem;
+      }
+
+      &--right {
+        right: calc(50% - 188px);
+        border-radius: 3rem 1.1rem 1.7rem 1rem;
+      }
+    }
+
+    &__aircraft-fuselage {
+      width: min(300px, 100%);
+      padding: 1.7rem 0.8rem 1.8rem;
+      border-radius: 120px 120px 1.6rem 1.6rem;
+    }
+
+    &__column-labels,
+    &__row {
+      grid-template-columns: minmax(0, 1fr) 24px minmax(0, 1fr);
+      gap: 0.38rem;
+    }
+
+    &__seat-bank-labels,
+    &__seat-bank {
+      grid-template-columns: repeat(3, 29px);
+      gap: 0.24rem;
+    }
+
+    &__seat-bank-labels {
+      font-size: 0.6rem;
+    }
+
+    &__seat-grid {
+      gap: 0.52rem;
+    }
+
+    &__exit-row {
+      padding: 0 0.2rem;
+
+      span {
+        font-size: 0.58rem;
+      }
+    }
+
+    &__seat {
+      width: 29px;
+      height: 29px;
+      border-radius: 0.35rem;
+      font-size: 0;
+
+      svg {
+        font-size: 0.9rem;
+      }
+    }
+
+    &__aisle--row {
+      font-size: 0.62rem;
+    }
+
+    &__aircraft-tail {
+      width: 86px;
+      margin-top: 0.85rem;
+    }
+
+    &__aircraft-tail-fin {
+      height: 64px;
+      border-radius: 1.2rem 1.2rem 999px 999px;
+    }
+
+    &__mobile-hold-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      position: fixed;
+      right: 0;
+      bottom: 10.4rem;
+      left: 0;
+      z-index: 35;
+      width: max-content;
+      margin: 0 auto;
+      padding: 0.7rem 1rem;
+      border-radius: 999px;
+      background: rgba($color-primary, 0.96);
+      color: #ffffff;
+      box-shadow: 0 18px 30px rgba($color-primary, 0.22);
+      pointer-events: none;
+
+      span {
+        font-size: 0.72rem;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+    }
+
+    &__mobile-footer {
+      display: block;
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 40;
+      padding: 1rem 1rem calc(1.15rem + env(safe-area-inset-bottom));
+      background: rgba($color-surface-raised, 0.86);
+      backdrop-filter: blur(22px);
+      border-top: 1px solid rgba($color-border, 0.18);
+      border-radius: 1.6rem 1.6rem 0 0;
+      box-shadow: 0 -10px 32px rgba(25, 28, 30, 0.08);
+    }
+
+    &__mobile-summary-row strong,
+    &__mobile-summary-price strong {
+      color: $color-text;
+      font: 800 2rem "Manrope", sans-serif;
+      line-height: 1;
+    }
+
+    &__mobile-summary-price {
+      text-align: right;
+
+      strong {
+        color: $color-primary;
+      }
+    }
+
+    &__mobile-summary-row p {
+      margin: 0.18rem 0 0;
+      font-size: 0.8rem;
+    }
+
+    &__mobile-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      border-radius: 1rem;
+    }
+
+    &__mobile-perks {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 0.9rem;
+
+      span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.32rem;
+        color: $color-text-muted;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+    }
+  }
+}
+
+@media (max-width: 420px) {
+  .seat-selection-page {
+    &__intro h1 {
+      font-size: 2.15rem;
+    }
+
+    &__flight-meta {
+      grid-template-columns: auto 1fr;
+    }
+
+    &__flight-meta-status {
+      grid-column: 1 / -1;
+      text-align: left;
+      justify-self: start;
+      padding-top: 0.2rem;
+      border-top: 1px solid rgba($color-border, 0.18);
+    }
+
+    &__aircraft-wing {
+      width: 72px;
+      height: 74px;
+
+      &--left {
+        left: calc(50% - 170px);
+      }
+
+      &--right {
+        right: calc(50% - 170px);
+      }
+    }
+
+    &__mobile-summary-row strong,
+    &__mobile-summary-price strong {
+      font-size: 1.8rem;
+    }
+
+    &__mobile-perks {
+      flex-direction: column;
+      align-items: center;
+      gap: 0.45rem;
+    }
+  }
+}
+

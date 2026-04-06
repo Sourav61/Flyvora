@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+    rel="stylesheet" />
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "background": "#f7f9fc",
+            "tertiary-container": "#c55500",
+            "primary-fixed-dim": "#adc7ff",
+            "inverse-primary": "#adc7ff",
+            "tertiary": "#9e4300",
+            "on-primary-fixed": "#001a41",
+            "surface-container-low": "#f2f4f7",
+            "on-secondary-fixed-variant": "#005049",
+            "inverse-surface": "#2d3133",
+            "surface-container": "#eceef1",
+            "on-primary-fixed-variant": "#004493",
+            "primary-container": "#1a73e8",
+            "tertiary-fixed": "#ffdbcb",
+            "surface-container-highest": "#e0e3e6",
+            "on-tertiary-fixed": "#341100",
+            "on-tertiary": "#ffffff",
+            "on-secondary": "#ffffff",
+            "error-container": "#ffdad6",
+            "surface-container-high": "#e6e8eb",
+            "on-secondary-container": "#007168",
+            "on-primary": "#ffffff",
+            "error": "#ba1a1a",
+            "secondary-container": "#70f8e8",
+            "secondary": "#006a62",
+            "primary": "#005bbf",
+            "on-secondary-fixed": "#00201d",
+            "on-tertiary-fixed-variant": "#783100",
+            "surface": "#f7f9fc",
+            "outline": "#727785",
+            "tertiary-fixed-dim": "#ffb691",
+            "on-tertiary-container": "#0e0200",
+            "outline-variant": "#c1c6d6",
+            "on-surface": "#191c1e",
+            "on-error": "#ffffff",
+            "on-surface-variant": "#414754",
+            "secondary-fixed-dim": "#4fdbcc",
+            "surface-bright": "#f7f9fc",
+            "on-primary-container": "#ffffff",
+            "surface-dim": "#d8dadd",
+            "surface-variant": "#e0e3e6",
+            "secondary-fixed": "#70f8e8",
+            "inverse-on-surface": "#eff1f4",
+            "primary-fixed": "#d8e2ff",
+            "surface-tint": "#005bc0",
+            "surface-container-lowest": "#ffffff",
+            "on-error-container": "#93000a",
+            "on-background": "#191c1e"
+          },
+          fontFamily: {
+            "headline": ["Manrope"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          },
+          borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+        },
+      },
+    }
+  </script>
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    .text-shadow-subtle {
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+  </style>
+</head>
+
+<body class="bg-background text-on-background font-body">
+  <!-- TopNavBar -->
+  <nav class="w-full top-0 sticky z-50 no-border bg-[#eceef1] dark:bg-slate-800">
+    <div class="flex justify-between items-center px-16 py-6 max-w-[1440px] mx-auto">
+      <div class="text-2xl font-bold text-[#191c1e] dark:text-white font-headline tracking-tight">Flyvora</div>
+      <div class="hidden md:flex items-center space-x-12">
+        <a class="text-[#1A73E8] dark:text-blue-400 font-semibold border-b-2 border-[#1A73E8] pb-1 font-headline tracking-tight transition-colors duration-200"
+          href="#">Flights</a>
+        <a class="text-[#191c1e] dark:text-slate-400 font-medium pb-1 hover:text-[#1A73E8] dark:hover:text-blue-300 transition-colors duration-200 font-headline tracking-tight"
+          href="#">Bookings</a>
+        <a class="text-[#191c1e] dark:text-slate-400 font-medium pb-1 hover:text-[#1A73E8] dark:hover:text-blue-300 transition-colors duration-200 font-headline tracking-tight"
+          href="#">Explore</a>
+        <a class="text-[#191c1e] dark:text-slate-400 font-medium pb-1 hover:text-[#1A73E8] dark:hover:text-blue-300 transition-colors duration-200 font-headline tracking-tight"
+          href="#">Support</a>
+      </div>
+      <div class="flex items-center space-x-6">
+        <button
+          class="text-[#191c1e] dark:text-slate-400 font-medium hover:text-[#1A73E8] transition-colors font-headline tracking-tight">Admin</button>
+        <button
+          class="bg-[#1A73E8] text-white px-8 py-2.5 rounded-full font-semibold hover:opacity-90 active:scale-95 duration-150 ease-in-out font-headline tracking-tight">Login</button>
+      </div>
+    </div>
+  </nav>
+  <main class="max-w-[1200px] mx-auto px-6">
+    <!-- Hero Section -->
+    <section class="py-20 md:py-32 flex flex-col items-center text-center">
+      <h1 class="font-headline text-5xl md:text-7xl font-extrabold text-on-surface mb-8 tracking-tight max-w-4xl">
+        The art of <span class="text-primary italic">seamless</span> departure.
+      </h1>
+      <p class="font-body text-on-surface-variant text-lg md:text-xl max-w-2xl mb-16 leading-relaxed">
+        Experience flight booking reimagined as a digital concierge. Precision, calm, and elevated service for the
+        modern voyager.
+      </p>
+      <!-- Flight Search Bento-ish Form -->
+      <div
+        class="w-full max-w-5xl surface-container-lowest p-2 rounded-xl shadow-[0px_24px_48px_rgba(25,28,30,0.06)] relative z-10">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-px bg-outline-variant/20 rounded-lg overflow-hidden">
+          <!-- From -->
+          <div
+            class="bg-surface-container-lowest p-6 flex flex-col items-start group transition-all duration-300 hover:bg-surface-container-low">
+            <span
+              class="text-[11px] font-semibold text-primary uppercase tracking-[0.1em] mb-2 font-label">Departure</span>
+            <div class="flex items-center w-full">
+              <span class="material-symbols-outlined text-outline mr-3" data-icon="flight_takeoff">flight_takeoff</span>
+              <input
+                class="w-full bg-transparent border-none p-0 focus:ring-0 text-on-surface font-semibold text-lg placeholder:text-outline/50"
+                placeholder="From where?" type="text" />
+            </div>
+          </div>
+          <!-- To -->
+          <div
+            class="bg-surface-container-lowest p-6 flex flex-col items-start group transition-all duration-300 hover:bg-surface-container-low">
+            <span
+              class="text-[11px] font-semibold text-primary uppercase tracking-[0.1em] mb-2 font-label">Arrival</span>
+            <div class="flex items-center w-full">
+              <span class="material-symbols-outlined text-outline mr-3" data-icon="flight_land">flight_land</span>
+              <input
+                class="w-full bg-transparent border-none p-0 focus:ring-0 text-on-surface font-semibold text-lg placeholder:text-outline/50"
+                placeholder="To where?" type="text" />
+            </div>
+          </div>
+          <!-- Date -->
+          <div
+            class="bg-surface-container-lowest p-6 flex flex-col items-start group transition-all duration-300 hover:bg-surface-container-low">
+            <span class="text-[11px] font-semibold text-primary uppercase tracking-[0.1em] mb-2 font-label">Date</span>
+            <div class="flex items-center w-full">
+              <span class="material-symbols-outlined text-outline mr-3" data-icon="calendar_today">calendar_today</span>
+              <input
+                class="w-full bg-transparent border-none p-0 focus:ring-0 text-on-surface font-semibold text-lg placeholder:text-outline/50"
+                placeholder="Select dates" type="text" />
+            </div>
+          </div>
+          <!-- Travelers -->
+          <div
+            class="bg-surface-container-lowest p-6 flex flex-col items-start group transition-all duration-300 hover:bg-surface-container-low">
+            <span
+              class="text-[11px] font-semibold text-primary uppercase tracking-[0.1em] mb-2 font-label">Travelers</span>
+            <div class="flex items-center w-full">
+              <span class="material-symbols-outlined text-outline mr-3" data-icon="person">person</span>
+              <select
+                class="w-full bg-transparent border-none p-0 focus:ring-0 text-on-surface font-semibold text-lg appearance-none cursor-pointer">
+                <option>1 Adult, Economy</option>
+                <option>2 Adults, Business</option>
+                <option>1 Adult, First Class</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="mt-4 flex justify-end p-2">
+          <button
+            class="bg-gradient-to-r from-primary to-primary-container text-white px-12 py-4 rounded-full font-semibold flex items-center gap-2 hover:shadow-lg active:scale-95 transition-all duration-200">
+            <span>Search Flights</span>
+            <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+    </section>
+    <!-- Featured Destinations (Asymmetric Grid) -->
+    <section class="py-24">
+      <div class="flex justify-between items-end mb-16">
+        <div class="max-w-xl">
+          <span class="text-primary font-bold tracking-widest text-xs uppercase mb-4 block font-label">Global
+            Curations</span>
+          <h2 class="font-headline text-4xl font-bold text-on-surface">Trending Destinations</h2>
+        </div>
+        <a class="text-primary font-semibold flex items-center gap-2 hover:gap-4 transition-all duration-300" href="#">
+          View all escapes <span class="material-symbols-outlined" data-icon="trending_flat">trending_flat</span>
+        </a>
+      </div>
+      <div class="grid grid-cols-12 gap-8">
+        <!-- Large Feature -->
+        <div class="col-span-12 md:col-span-8 group relative h-[500px] rounded-xl overflow-hidden cursor-pointer">
+          <img alt="Sydney Opera House"
+            class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            data-alt="Panoramic view of Sydney Opera House at sunset"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnZAhBcPZKBBGPCcFecMCYPNDDu2Wok9qFviiPxMtMJRKh_az-SQx6eXocMlDZYkhGG0SRhRcRh-k4B7gai87pb54X4082x-J6W_F173aF4VgEw3EvboN01WLKw264Sm649aWPEb3mWOIieL6eQV7tCpLEFRWcY1lp5cc8HWmyCTQXFDeQ8PrKSO8w0SoQbJAAacK4ALLpjWOt96p-WaWtTA_Q6anlMvZHMROO73X36yN2A7zez4W1ot_yrPLC3S02D19ViDYRzY0" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+          <div class="absolute bottom-0 left-0 p-10 text-white">
+            <span
+              class="bg-white/20 backdrop-blur-md px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 inline-block">New
+              Route</span>
+            <h3 class="text-4xl font-bold font-headline mb-2">Sydney, Australia</h3>
+            <p class="text-white/80 font-medium">Direct flights starting from $840</p>
+          </div>
+        </div>
+        <!-- Secondary -->
+        <div class="col-span-12 md:col-span-4 group relative h-[500px] rounded-xl overflow-hidden cursor-pointer">
+          <img alt="Bali Temple"
+            class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            data-alt="Zen temple in Bali surrounded by lush greenery"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYszeumiRMnKdOSftLGrNzA9MQGy4sJMuypxk_tbqsQd3ABeUDBCbf_qPYY4bhR0TVbYXKcFl8CwrixpVqiyi5xuXGwhWIfi108Or_yWTJRRBJJBijrKrKEUD0tjtZ8Rqfh57afftdWsmkD_vupquHV533fqWkR9ezJGtPbP4mGTEvBFcKzhpQ4Uyi-dGRPN6I-3CcQoAVyvxL6UqMOv_3h4tty-KZMYB0PHQuxVwyPTctpE4wp8ekPcn52a8N6qSQTE8Wq6tc-Hw" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+          <div class="absolute bottom-0 left-0 p-10 text-white">
+            <h3 class="text-2xl font-bold font-headline mb-2">Bali, Indonesia</h3>
+            <p class="text-white/80 font-medium">Lush retreats from $620</p>
+          </div>
+        </div>
+        <!-- Bento Row -->
+        <div class="col-span-12 md:col-span-4 group relative h-[350px] rounded-xl overflow-hidden cursor-pointer">
+          <img alt="London Skyline"
+            class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            data-alt="Iconic London Big Ben and Thames river"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOn1Fn_I__n7r9_kjPsujYyvL9kXrMLXsG2UxcwR0RWZol8st-tXjbwmbUuprh0CZFfm5hcKO8F1mF1rW--BoLd0K4FBy4y7ElV4caBcHMNyHGz4zFMlsPDMmYlVhftP_kxVmNPEDzMOnzeZEeBx4T04Xqct5LCXEJJXpYwm5cyemWsLCpGYx9lA6fDK3AjUthZGTkGvrOHG2I-a18b7tWW1vlIjWmVZd3jYTm2aVEnlreYHE6YgMqxrb5RNI4yNimluEYFf52CCs" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+          <div class="absolute bottom-0 left-0 p-8 text-white">
+            <h3 class="text-xl font-bold font-headline mb-1">London, UK</h3>
+            <p class="text-white/80 text-sm">Classic elegance from $450</p>
+          </div>
+        </div>
+        <div class="col-span-12 md:col-span-4 group relative h-[350px] rounded-xl overflow-hidden cursor-pointer">
+          <img alt="Taj Mahal"
+            class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            data-alt="The Taj Mahal in Agra India under morning sun"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAk_HZdRHMiRTfmmAaQGTiMkngh518iUSrWWKVAnL0N4LkguaeMoPrJ-unttoPgdTAE76guzNPH_vwzJbAxn5rRUyRzdGSRtTnr6gUr5xSjYdqJShFSvPL8qsDrWncy3v8rY6nEmqUy7TCA-dcDJPS3nJzPQlVOTj_NVlsAAva_7DdZ70LqkH3GpMlhBoffCoq8mAngO9nnEAZWo5yUomGEiuEv9YNdamJ5qg3W2Ywd-X1-nlGWvnhdFliVhd0iHrG3y2cYOWqVpNI" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+          <div class="absolute bottom-0 left-0 p-8 text-white">
+            <h3 class="text-xl font-bold font-headline mb-1">Agra, India</h3>
+            <p class="text-white/80 text-sm">Cultural heritage from $710</p>
+          </div>
+        </div>
+        <div class="col-span-12 md:col-span-4 group relative h-[350px] rounded-xl overflow-hidden cursor-pointer">
+          <img alt="Amsterdam Canal"
+            class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            data-alt="Cozy Amsterdam canals with bicycles parked nearby"
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJf47OB23FDAjTNRbn1Ml1_lYFul2_6NgmzzvGT67lgUimA1i6Vq3RJ_lqVDqIhcmnda-XFa7zQ5xo03IZVzG3Yo81KCT-K5NMQ7q-Oosj-IUGbrFZQ52x-HGdcc--S6m6-WJgQ7FR32PIdS7KGpupux6GA2zhRoBUtdKbrK4z3dAR8TmjnkVHi2iwMI_Qh169v7lLA676_EaCALK5HmH9NS4IpLC_73rMkLhKt_xd0XV9_pH6MnLJ07GV1Cf7RvIFRu-eyWSdCz0" />
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+          <div class="absolute bottom-0 left-0 p-8 text-white">
+            <h3 class="text-xl font-bold font-headline mb-1">Amsterdam, NL</h3>
+            <p class="text-white/80 text-sm">Canal-side charm from $390</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Value Proposition Section (Premium Aesthetic) -->
+    <section class="py-24 border-t border-outline-variant/10">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-16">
+        <div class="flex flex-col gap-6">
+          <div class="w-12 h-12 bg-primary-fixed flex items-center justify-center rounded-xl">
+            <span class="material-symbols-outlined text-primary" data-icon="verified_user">verified_user</span>
+          </div>
+          <h4 class="font-headline text-xl font-bold">Trusted Security</h4>
+          <p class="text-on-surface-variant leading-relaxed">Your data and transactions are protected by military-grade
+            encryption and advanced fraud protection systems.</p>
+        </div>
+        <div class="flex flex-col gap-6">
+          <div class="w-12 h-12 bg-secondary-fixed flex items-center justify-center rounded-xl">
+            <span class="material-symbols-outlined text-secondary" data-icon="support_agent">support_agent</span>
+          </div>
+          <h4 class="font-headline text-xl font-bold">24/7 Concierge</h4>
+          <p class="text-on-surface-variant leading-relaxed">Not just support—concierge service. Our global team is
+            available around the clock to handle rebookings and requests.</p>
+        </div>
+        <div class="flex flex-col gap-6">
+          <div class="w-12 h-12 bg-tertiary-fixed flex items-center justify-center rounded-xl">
+            <span class="material-symbols-outlined text-tertiary" data-icon="auto_awesome">auto_awesome</span>
+          </div>
+          <h4 class="font-headline text-xl font-bold">Intelligent Routing</h4>
+          <p class="text-on-surface-variant leading-relaxed">Our proprietary algorithm finds unique connection paths and
+            price combinations that standard search engines miss.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <!-- Footer -->
+  <footer class="w-full py-20 mt-auto border-t border-[#c1c6d6]/20 bg-[#f7f9fc] dark:bg-slate-950">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 px-20 max-w-[1440px] mx-auto">
+      <div class="col-span-2 md:col-span-1">
+        <div class="text-lg font-bold text-[#191c1e] dark:text-white mb-6 font-headline tracking-tight">Flyvora</div>
+        <p class="text-slate-500 dark:text-slate-500 font-['Inter'] text-sm leading-relaxed mb-6">Redefining the sky
+          through digital precision and human warmth.</p>
+        <div class="text-slate-500 dark:text-slate-500 font-['Inter'] text-xs uppercase tracking-wider">
+          © 2024 Flyvora. The Digital Concierge.
+        </div>
+      </div>
+      <div class="flex flex-col gap-4">
+        <span
+          class="text-[#191c1e] dark:text-white font-headline text-sm font-bold uppercase tracking-widest mb-2">Company</span>
+        <a class="text-slate-500 dark:text-slate-500 font-['Inter'] text-sm uppercase tracking-wider hover:text-[#1A73E8] underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100"
+          href="#">Careers</a>
+        <a class="text-slate-500 dark:text-slate-500 font-['Inter'] text-sm uppercase tracking-wider hover:text-[#1A73E8] underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100"
+          href="#">Press</a>
+      </div>
+      <div class="flex flex-col gap-4">
+        <span
+          class="text-[#191c1e] dark:text-white font-headline text-sm font-bold uppercase tracking-widest mb-2">Legal</span>
+        <a class="text-slate-500 dark:text-slate-500 font-['Inter'] text-sm uppercase tracking-wider hover:text-[#1A73E8] underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100"
+          href="#">Privacy Policy</a>
+        <a class="text-slate-500 dark:text-slate-500 font-['Inter'] text-sm uppercase tracking-wider hover:text-[#1A73E8] underline-offset-4 hover:underline transition-opacity opacity-80 hover:opacity-100"
+          href="#">Terms of Service</a>
+      </div>
+      <div class="flex flex-col gap-4">
+        <span
+          class="text-[#191c1e] dark:text-white font-headline text-sm font-bold uppercase tracking-widest mb-2">Connect</span>
+        <div class="flex gap-4">
+          <a class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-primary-fixed transition-colors"
+            href="#">
+            <span class="material-symbols-outlined text-on-surface text-lg"
+              data-icon="alternate_email">alternate_email</span>
+          </a>
+          <a class="w-10 h-10 rounded-full bg-surface-container flex items-center justify-center hover:bg-primary-fixed transition-colors"
+            href="#">
+            <span class="material-symbols-outlined text-on-surface text-lg" data-icon="language">language</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+
+</html>

@@ -24,6 +24,7 @@ import {
 import { clearCheckoutDraft, readCheckoutDraft, saveCheckoutDraft } from "../../search/checkoutStorage";
 import { readTravelerProfile, saveTravelerProfile } from "../../search/travelerProfileStorage";
 import { downloadBookingPdf, viewBookingPdf } from "../../bookings/bookingPdf";
+import { buildApiUrl } from "../../../shared/api";
 import "../home/home.scss";
 import "./checkout.scss";
 
@@ -33,7 +34,6 @@ const dateFormatter = new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: 
 const shortDateFormatter = new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short" });
 const DODO_RETURN_STORAGE_KEY = "flyvora-dodo-return";
 
-const getApiBaseUrl = () => (process.env.REACT_APP_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
 const buildSeatMapPath = (flightId, traveler = {}) => {
   const params = new URLSearchParams();
 
@@ -97,7 +97,7 @@ const stripCheckoutQueryParams = () => {
 const postJson = async (path, payload) => {
   let response;
   try {
-    response = await fetch(`${getApiBaseUrl()}${path}`, {
+    response = await fetch(buildApiUrl(path), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -112,7 +112,7 @@ const postJson = async (path, payload) => {
 const getJson = async (path) => {
   let response;
   try {
-    response = await fetch(`${getApiBaseUrl()}${path}`);
+    response = await fetch(buildApiUrl(path));
   } catch (error) {
     throw new Error("Flyvora could not reach the booking server. Start the backend with npm run server and try again.");
   }
@@ -645,6 +645,8 @@ const Checkout = () => {
 };
 
 export default Checkout;
+
+
 
 
 

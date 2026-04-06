@@ -14,6 +14,7 @@ import StyledSelectField from "../StyledSelectField";
 import "../../pages/home/home.scss";
 import "./BookingList.scss";
 import { downloadBookingPdf, viewBookingPdf } from "../../bookings/bookingPdf";
+import { buildApiUrl, describeApiTarget } from "../../../shared/api";
 
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -45,8 +46,6 @@ const TIME_WINDOW_OPTIONS = [
   { value: "evening", label: "6 PM - 12 AM" },
 ];
 
-const getApiBaseUrl = () =>
-  (process.env.REACT_APP_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
 const formatCurrency = (value) => currencyFormatter.format(value || 0);
 const formatDate = (value) => (value ? dateFormatter.format(new Date(value)) : "--");
 const formatTime = (value) => (value ? timeFormatter.format(new Date(value)) : "--");
@@ -59,7 +58,7 @@ const resolveBookingErrorMessage = (error) => {
   }
 
   if (/failed to fetch|load failed|networkerror|network request failed/i.test(message)) {
-    return `We couldn't reach the bookings service at ${getApiBaseUrl()}. Please make sure the backend is running and try again.`;
+    return `We couldn't reach the bookings service at ${describeApiTarget()}. Please make sure the backend is running and try again.`;
   }
 
   return message;
@@ -249,7 +248,7 @@ const BookingList = () => {
       setErrorMessage("");
 
       try {
-        const response = await fetch(`${getApiBaseUrl()}/api/bookings?${searchParams.toString()}`);
+        const response = await fetch(buildApiUrl(`/api/bookings?${searchParams.toString()}`));
         const payload = await response.json().catch(() => ({}));
 
         if (!response.ok) {
@@ -499,4 +498,6 @@ const BookingList = () => {
 };
 
 export default BookingList;
+
+
 

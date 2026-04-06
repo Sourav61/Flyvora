@@ -20,6 +20,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { useAuth0 } from "@auth0/auth0-react";
 import BookingList from "./user/components/BookingList/BookingList";
+import { buildApiUrl } from "./shared/api";
 import Bookings from "./admin/pages/Main/bookings/Bookings";
 import {
   clearAdminSession,
@@ -28,8 +29,6 @@ import {
   readAdminSession,
 } from "./admin/auth/adminSession";
 
-const getApiBaseUrl = () =>
-  (process.env.REACT_APP_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuth0();
@@ -78,7 +77,7 @@ function AdminRoute({ children }) {
       setIsCheckingAdminSession(true);
 
       try {
-        const response = await fetch(`${getApiBaseUrl()}/api/admin/session/me`, {
+        const response = await fetch(buildApiUrl("/api/admin/session/me"), {
           headers: {
             "Content-Type": "application/json",
             ...getAdminAuthorizationHeaders(adminSession),
@@ -236,3 +235,6 @@ function App() {
 }
 
 export default App;
+
+
+

@@ -18,6 +18,7 @@ import {
   saveSeatSelectionDraft,
 } from "../../search/seatSelectionStorage";
 import { clearCheckoutDraft, saveCheckoutDraft } from "../../search/checkoutStorage";
+import { buildApiUrl } from "../../../shared/api";
 import "../home/home.scss";
 import "./seatSelection.scss";
 
@@ -46,8 +47,6 @@ const formatIsoTime = (value) => timeFormatter.format(new Date(value));
 const formatIsoDate = (value) => dateFormatter.format(new Date(value));
 const formatHoldTime = (seconds) =>
   `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-const getApiBaseUrl = () =>
-  (process.env.REACT_APP_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
 
 const buildSeatMapPath = (flightId, traveler = {}) => {
   const params = new URLSearchParams();
@@ -65,7 +64,7 @@ const buildSeatMapPath = (flightId, traveler = {}) => {
 };
 
 const fetchJson = async (path) => {
-  const response = await fetch(`${getApiBaseUrl()}${path}`);
+  const response = await fetch(buildApiUrl(path));
   const payload = await response.json().catch(() => ({}));
 
   if (!response.ok) {
@@ -76,7 +75,7 @@ const fetchJson = async (path) => {
 };
 
 const postJson = async (path, payload) => {
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
+  const response = await fetch(buildApiUrl(path), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
@@ -976,4 +975,6 @@ const SeatSelection = () => {
 };
 
 export default SeatSelection;
+
+
 

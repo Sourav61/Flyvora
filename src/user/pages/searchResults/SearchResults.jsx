@@ -33,6 +33,7 @@ import {
   validateSearchState,
 } from "../../search/searchUtils";
 import { saveSeatSelectionDraft } from "../../search/seatSelectionStorage";
+import { buildApiUrl } from "../../../shared/api";
 import "../home/home.scss";
 import "./searchResults.scss";
 
@@ -88,8 +89,6 @@ const timeFormatter = new Intl.DateTimeFormat("en-IN", {
   minute: "2-digit",
 });
 
-const getApiBaseUrl = () =>
-  (process.env.REACT_APP_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
 
 const formatCurrency = (value) => currencyFormatter.format(value || 0);
 const formatDateValue = (value, formatter = longDateFormatter) =>
@@ -320,7 +319,7 @@ const SearchResults = () => {
     setFetchStatus("loading");
     setFetchError("");
 
-    fetch(`${getApiBaseUrl()}/api/flights/search?${query.toString()}`, { signal: controller.signal })
+    fetch(buildApiUrl(`/api/flights/search?${query.toString()}`), { signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) {
           const payload = await response.json().catch(() => ({}));
@@ -1212,6 +1211,8 @@ const SearchResults = () => {
 };
 
 export default SearchResults;
+
+
 
 
 

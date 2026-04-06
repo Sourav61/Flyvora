@@ -3,9 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { clearAdminSession, hasActiveAdminSession, saveAdminSession } from "../../auth/adminSession";
 import "../../../styles/auth.scss";
+import { buildApiUrl } from "../../../shared/api";
 
-const getApiBaseUrl = () =>
-  (process.env.REACT_APP_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
 
 const AdminLogin = () => {
   const { isAuthenticated, isLoading, loginWithRedirect, user } = useAuth0();
@@ -52,7 +51,7 @@ const AdminLogin = () => {
     setHelperMessage("");
 
     try {
-      const response = await fetch(`${getApiBaseUrl()}/api/admin/session/login`, {
+      const response = await fetch(buildApiUrl("/api/admin/session/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -150,3 +149,4 @@ const AdminLogin = () => {
 };
 
 export default AdminLogin;
+

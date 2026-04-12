@@ -3,7 +3,6 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { Auth0Provider } from "@auth0/auth0-react";
 import App from "./App";
-import { DarkModeContextProvider } from "./context/darkModeContext";
 import "./styles/globals.scss";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
@@ -24,9 +23,7 @@ root.render(
       cacheLocation="localstorage"
       useRefreshTokens
     >
-      <DarkModeContextProvider>
-        <App />
-      </DarkModeContextProvider>
+      <App />
     </Auth0Provider>
   </BrowserRouter>
 );

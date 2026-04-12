@@ -24,7 +24,7 @@ import {
 import { clearCheckoutDraft, readCheckoutDraft, saveCheckoutDraft } from "../../search/checkoutStorage";
 import { readTravelerProfile, saveTravelerProfile } from "../../search/travelerProfileStorage";
 import { downloadBookingPdf, viewBookingPdf } from "../../bookings/bookingPdf";
-import { buildApiUrl } from "../../../shared/api";
+import { buildApiUrl, readApiPayload } from "../../../shared/api";
 import "../home/home.scss";
 import "./checkout.scss";
 
@@ -105,7 +105,7 @@ const postJson = async (path, payload) => {
   } catch (error) {
     throw new Error("Flyvora could not reach the booking server. Start the backend with npm run server and try again.");
   }
-  const data = await response.json().catch(() => ({}));
+  const data = await readApiPayload(response, "We could not complete checkout right now.");
   if (!response.ok) throw new Error(data.message || "We could not complete checkout right now.");
   return data;
 };
@@ -116,7 +116,7 @@ const getJson = async (path) => {
   } catch (error) {
     throw new Error("Flyvora could not reach the booking server. Start the backend with npm run server and try again.");
   }
-  const data = await response.json().catch(() => ({}));
+  const data = await readApiPayload(response, "We could not refresh your live reservation right now.");
   if (!response.ok) throw new Error(data.message || "We could not refresh your live reservation right now.");
   return data;
 };
@@ -645,6 +645,7 @@ const Checkout = () => {
 };
 
 export default Checkout;
+
 
 
 

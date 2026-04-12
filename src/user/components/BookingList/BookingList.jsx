@@ -14,7 +14,7 @@ import StyledSelectField from "../StyledSelectField";
 import "../../pages/home/home.scss";
 import "./BookingList.scss";
 import { downloadBookingPdf, viewBookingPdf } from "../../bookings/bookingPdf";
-import { buildApiUrl, describeApiTarget } from "../../../shared/api";
+import { buildApiUrl, describeApiTarget, readApiPayload } from "../../../shared/api";
 
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -249,7 +249,7 @@ const BookingList = () => {
 
       try {
         const response = await fetch(buildApiUrl(`/api/bookings?${searchParams.toString()}`));
-        const payload = await response.json().catch(() => ({}));
+        const payload = await readApiPayload(response, "We could not load your bookings right now.");
 
         if (!response.ok) {
           throw new Error(payload.message || "We could not load your bookings right now.");
@@ -498,6 +498,7 @@ const BookingList = () => {
 };
 
 export default BookingList;
+
 
 
 

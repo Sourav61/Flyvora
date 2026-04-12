@@ -33,7 +33,7 @@ import {
   validateSearchState,
 } from "../../search/searchUtils";
 import { saveSeatSelectionDraft } from "../../search/seatSelectionStorage";
-import { buildApiUrl } from "../../../shared/api";
+import { buildApiUrl, readApiPayload } from "../../../shared/api";
 import "../home/home.scss";
 import "./searchResults.scss";
 
@@ -321,12 +321,13 @@ const SearchResults = () => {
 
     fetch(buildApiUrl(`/api/flights/search?${query.toString()}`), { signal: controller.signal })
       .then(async (response) => {
+        const payload = await readApiPayload(response, "We could not load flights right now.");
+
         if (!response.ok) {
-          const payload = await response.json().catch(() => ({}));
           throw new Error(payload.message || "We could not load flights right now.");
         }
 
-        return response.json();
+        return payload;
       })
       .then((payload) => {
         if (controller.signal.aborted) {
@@ -1211,6 +1212,7 @@ const SearchResults = () => {
 };
 
 export default SearchResults;
+
 
 
 

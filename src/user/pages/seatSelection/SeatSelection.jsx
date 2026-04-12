@@ -18,7 +18,7 @@ import {
   saveSeatSelectionDraft,
 } from "../../search/seatSelectionStorage";
 import { clearCheckoutDraft, saveCheckoutDraft } from "../../search/checkoutStorage";
-import { buildApiUrl } from "../../../shared/api";
+import { buildApiUrl, readApiPayload } from "../../../shared/api";
 import "../home/home.scss";
 import "./seatSelection.scss";
 
@@ -65,7 +65,7 @@ const buildSeatMapPath = (flightId, traveler = {}) => {
 
 const fetchJson = async (path) => {
   const response = await fetch(buildApiUrl(path));
-  const payload = await response.json().catch(() => ({}));
+  const payload = await readApiPayload(response, "We could not refresh live seat availability right now.");
 
   if (!response.ok) {
     throw new Error(payload.message || "We could not refresh live seat availability right now.");
@@ -80,7 +80,7 @@ const postJson = async (path, payload) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  const data = await response.json().catch(() => ({}));
+  const data = await readApiPayload(response, "We could not reserve that seat right now.");
 
   if (!response.ok) {
     throw new Error(data.message || "We could not reserve that seat right now.");
@@ -975,6 +975,7 @@ const SeatSelection = () => {
 };
 
 export default SeatSelection;
+
 
 
 

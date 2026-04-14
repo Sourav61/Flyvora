@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
 import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
 import LightbulbRoundedIcon from "@mui/icons-material/LightbulbRounded";
 import VerifiedUserRoundedIcon from "@mui/icons-material/VerifiedUserRounded";
@@ -7,6 +6,9 @@ import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import FlightTakeoffRoundedIcon from "@mui/icons-material/FlightTakeoffRounded";
 import PublicRoundedIcon from "@mui/icons-material/PublicRounded";
 import MenuBookRoundedIcon from "@mui/icons-material/MenuBookRounded";
+import { PublicHeader } from "../../components/layout/Header";
+import { PublicFooter } from "../../components/layout/Footer";
+import "../home/home.scss";
 import "./featuredJourney.scss";
 import { featuredJourneys, getFeaturedJourneyBySlug } from "./featuredJourneyData";
 
@@ -35,7 +37,6 @@ const buildJourneySearchUrl = (journey) => {
 const FeaturedJourney = () => {
   const { journeySlug } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading, loginWithRedirect, logout, user } = useAuth0();
   const journey = getFeaturedJourneyBySlug(journeySlug);
 
   const relatedJourneys = useMemo(
@@ -47,55 +48,9 @@ const FeaturedJourney = () => {
     return <Navigate to="/" replace />;
   }
 
-  const userDisplayName = user?.given_name || user?.name || "Traveler";
-
   return (
     <main className="featured-journey-page">
-      <header className="featured-journey-page__nav">
-        <div className="featured-journey-page__shell featured-journey-page__nav-inner">
-          <Link className="featured-journey-page__brand" to="/">Flyvora</Link>
-          <nav className="featured-journey-page__links">
-            <Link to="/#search-panel">Flights</Link>
-            <Link to="/bookings">Bookings</Link>
-            <span className="is-active">Explore</span>
-            <Link to="/#support">Support</Link>
-          </nav>
-          <div className="featured-journey-page__actions">
-            {isLoading ? null : isAuthenticated ? (
-              <>
-                <Link className="featured-journey-page__profile-link" to="/bookings">
-                  {user?.picture ? (
-                    <img src={user.picture} alt={userDisplayName} />
-                  ) : (
-                    <span>{userDisplayName.charAt(0)}</span>
-                  )}
-                  <strong>{userDisplayName}</strong>
-                </Link>
-                <button
-                  type="button"
-                  className="button button--secondary"
-                  onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <button
-                type="button"
-                className="button button--primary"
-                onClick={() =>
-                  loginWithRedirect({
-                    appState: { returnTo: `/journeys/${journey.slug}` },
-                    authorizationParams: { connection: "google-oauth2", prompt: "login" },
-                  })
-                }
-              >
-                Login
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
+      <PublicHeader />
 
       <section
         className="featured-journey-page__hero"
@@ -217,32 +172,16 @@ const FeaturedJourney = () => {
         </div>
       </section>
 
-      <footer className="featured-journey-page__footer">
-        <div className="featured-journey-page__shell featured-journey-page__footer-grid">
-          <div>
-            <strong>Flyvora</strong>
-            <p>The Digital Concierge for polished flight journeys.</p>
-          </div>
-          <div>
-            <span>Explore</span>
-            <Link to="/">Homepage</Link>
-            <Link to="/bookings">Bookings</Link>
-          </div>
-          <div>
-            <span>Legal</span>
-            <a href="/privacy">Privacy Policy</a>
-            <a href="/terms">Terms of Service</a>
-          </div>
-          <div>
-            <span>Support</span>
-            <a href="mailto:hello@flyvora.com">hello@flyvora.com</a>
-            <a href="/#support">Concierge</a>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
     </main>
   );
 };
 
 export default FeaturedJourney;
+
+
+
+
+
+
 

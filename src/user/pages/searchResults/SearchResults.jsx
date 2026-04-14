@@ -1,9 +1,7 @@
-import React, { startTransition, useEffect, useMemo, useRef, useState } from "react";
+import React, { startTransition, useEffect, useMemo, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLocation, useNavigate } from "react-router-dom";
-import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
-import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import EditRoundedIcon from "@mui/icons-material/EditRounded";
 import TuneRoundedIcon from "@mui/icons-material/TuneRounded";
 import TrendingUpRoundedIcon from "@mui/icons-material/TrendingUpRounded";
@@ -24,6 +22,8 @@ import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import FlightSearchPanel from "../../components/FlightSearchPanel";
 import StyledSelectField from "../../components/StyledSelectField";
+import { PublicHeader } from "../../components/layout/Header";
+import { PublicFooter } from "../../components/layout/Footer";
 import {
   buildSearchPath,
   formatTravelerSummary,
@@ -36,12 +36,6 @@ import { saveSeatSelectionDraft } from "../../search/seatSelectionStorage";
 import { buildApiUrl, readApiPayload } from "../../../shared/api";
 import "../home/home.scss";
 import "./searchResults.scss";
-
-const navigationItems = [
-  { label: "Flights", href: "/flights", isActive: true },
-  { label: "Explore", href: "/#destinations" },
-  { label: "Support", href: "/#support" },
-];
 
 const AIRPORT_CODES = {
   Ahmedabad: "AMD",
@@ -226,10 +220,9 @@ const sortFlights = (flights, sortBy) => {
 };
 
 const SearchResults = () => {
-  const { isAuthenticated, isLoading, loginWithRedirect, logout, user } = useAuth0();
+  const { isAuthenticated, loginWithRedirect } = useAuth0();
   const navigate = useNavigate();
   const location = useLocation();
-  const profileMenuRef = useRef(null);
   const appliedSearch = useMemo(() => parseSearchStateFromParams(location.search), [location.search]);
   const appliedValidationErrors = useMemo(() => validateSearchState(appliedSearch), [appliedSearch]);
   const [draftSearch, setDraftSearch] = useState(appliedSearch);
@@ -238,8 +231,6 @@ const SearchResults = () => {
   const [isSearchEditorOpen, setIsSearchEditorOpen] = useState(
     Object.keys(appliedValidationErrors).length > 0
   );
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [fetchStatus, setFetchStatus] = useState("idle");
   const [fetchError, setFetchError] = useState("");
@@ -252,7 +243,6 @@ const SearchResults = () => {
   const [selectedFlightId, setSelectedFlightId] = useState(null);
   const [expandedFlightId, setExpandedFlightId] = useState(null);
   const [isSelectionConfirmed, setIsSelectionConfirmed] = useState(false);
-  const userDisplayName = user?.given_name || user?.name || "Traveler";
 
   const startGoogleLogin = (returnTo = "/bookings") => {
     loginWithRedirect({
@@ -275,18 +265,15 @@ const SearchResults = () => {
   }, [appliedSearch, appliedValidationErrors]);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
-        setIsProfileMenuOpen(false);
-      }
-    };
+    const handleModifySearch = () => setIsSearchEditorOpen(true);
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    window.addEventListener("flyvora:modify-search", handleModifySearch);
+    return () => window.removeEventListener("flyvora:modify-search", handleModifySearch);
   }, []);
 
+
   useEffect(() => {
-    if (!isMobileMenuOpen && !isFilterSheetOpen) {
+    if (!isFilterSheetOpen) {
       return undefined;
     }
 
@@ -296,7 +283,7 @@ const SearchResults = () => {
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [isFilterSheetOpen, isMobileMenuOpen]);
+  }, [isFilterSheetOpen]);
 
   useEffect(() => {
     if (Object.keys(appliedValidationErrors).length > 0) {
@@ -616,111 +603,7 @@ const SearchResults = () => {
 
   return (
     <main className="home-page search-results-page">
-      <header className={`home-page__nav ${isMobileMenuOpen ? "is-mobile-open" : ""}`}>
-        <div className="home-page__shell home-page__nav-inner">
-          <a className="home-page__brand" href="/">
-            Flyvora
-          </a>
-
-          <button
-            type="button"
-            className={`home-page__menu-toggle ${isMobileMenuOpen ? "is-open" : ""}`}
-            aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
-            onClick={() => setIsMobileMenuOpen((current) => !current)}
-          >
-            {isMobileMenuOpen ? <CloseRoundedIcon fontSize="small" /> : <MenuRoundedIcon fontSize="small" />}
-          </button>
-
-          <nav className="home-page__links">
-            {navigationItems.map((item) => (
-              <a key={item.label} href={item.href} className={item.isActive ? "is-active" : ""}>
-                {item.label}
-              </a>
-            ))}
-          </nav>
-
-          <div className="home-page__actions">
-            {isLoading ? null : isAuthenticated ? (
-              <div className="home-page__profile" ref={profileMenuRef}>
-                <button
-                  type="button"
-                  className={`home-page__profile-trigger ${isProfileMenuOpen ? "is-open" : ""}`}
-                  onClick={() => setIsProfileMenuOpen((current) => !current)}
-                >
-                  {user?.picture ? (
-                    <img className="home-page__avatar" src={user.picture} alt={userDisplayName} />
-                  ) : (
-                    <span className="home-page__avatar-fallback">{userDisplayName.charAt(0)}</span>
-                  )}
-                  <span className="home-page__profile-copy">
-                    <span className="home-page__profile-greeting">Hi, {userDisplayName}</span>
-                    <span className="home-page__profile-subtext">Account</span>
-                  </span>
-                  <ExpandMoreRoundedIcon fontSize="small" />
-                </button>
-                {isProfileMenuOpen ? (
-                  <div className="home-page__profile-menu">
-                    <button type="button" onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>Logout</button>
-                    <button type="button" onClick={() => window.location.assign("/bookings")}>My Bookings</button>
-                    <button type="button" onClick={() => window.location.assign("/admin")}>Admin</button>
-                  </div>
-                ) : null}
-              </div>
-            ) : (
-              <>
-                <a href="/admin">Admin</a>
-                <button type="button" className="button button--primary" onClick={() => startGoogleLogin("/flights")}>
-                  Login
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        <button
-          type="button"
-          className={`home-page__mobile-backdrop ${isMobileMenuOpen ? "is-open" : ""}`}
-          aria-label="Close navigation menu"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-
-        <nav className={`home-page__mobile-menu ${isMobileMenuOpen ? "is-open" : ""}`} aria-hidden={!isMobileMenuOpen}>
-          <div className="home-page__mobile-menu-inner">
-            <div className="home-page__mobile-card-list">
-              <button
-                type="button"
-                className="home-page__mobile-card"
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  setIsSearchEditorOpen(true);
-                }}
-              >
-                <span className="home-page__mobile-card-icon">
-                  <EditRoundedIcon fontSize="inherit" />
-                </span>
-                <span>Modify Search</span>
-              </button>
-              <a className="home-page__mobile-card" href="/bookings" onClick={() => setIsMobileMenuOpen(false)}>
-                <span className="home-page__mobile-card-icon">
-                  <LuggageRoundedIcon fontSize="inherit" />
-                </span>
-                <span>My Trips</span>
-              </a>
-            </div>
-            <div className="home-page__mobile-bottom">
-              {isAuthenticated ? (
-                <button type="button" className="home-page__mobile-account-action home-page__mobile-account-action--danger" onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>
-                  Logout
-                </button>
-              ) : (
-                <button type="button" className="home-page__mobile-cta" onClick={() => startGoogleLogin("/flights")}>
-                  Login
-                </button>
-              )}
-            </div>
-          </div>
-        </nav>
-      </header>
+      <PublicHeader />
 
       <section className="search-results-page__hero">
         <div className="home-page__shell">
@@ -1172,7 +1055,7 @@ const SearchResults = () => {
           className="search-results-page__mobile-nav-item"
           onClick={() => {
             if (isAuthenticated) {
-              setIsMobileMenuOpen(true);
+              window.dispatchEvent(new Event("flyvora:open-public-menu"));
               return;
             }
 
@@ -1183,35 +1066,23 @@ const SearchResults = () => {
           <span>Profile</span>
         </button>
       </nav>
-
-      <footer className="home-page__footer">
-        <div className="home-page__shell home-page__footer-layout">
-          <div className="home-page__footer-brand">
-            <strong>Flyvora</strong>
-            <p>Redefining the sky through digital precision and human warmth.</p>
-            <span>Copyright 2026 Flyvora. The Digital Concierge.</span>
-          </div>
-          <div className="home-page__footer-column">
-            <span>Company</span>
-            <a href="/#destinations">Explore</a>
-            <a href="/#support">Support</a>
-          </div>
-          <div className="home-page__footer-column">
-            <span>Legal</span>
-            <a href="/privacy">Privacy Policy</a>
-            <a href="/terms">Terms of Service</a>
-          </div>
-          <div className="home-page__footer-column">
-            <span>Search</span>
-            <a href="/">Homepage</a>
-            <a href="/bookings">My Trips</a>
-          </div>
-        </div>
-      </footer></main>
+      <PublicFooter />
+    </main>
   );
 };
 
 export default SearchResults;
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import EventSeatRoundedIcon from "@mui/icons-material/EventSeatRounded";
 import WifiRoundedIcon from "@mui/icons-material/WifiRounded";
@@ -18,6 +17,7 @@ import {
   saveSeatSelectionDraft,
 } from "../../search/seatSelectionStorage";
 import { clearCheckoutDraft, saveCheckoutDraft } from "../../search/checkoutStorage";
+import { BookingHeader } from "../../components/layout/Header";
 import { buildApiUrl, readApiPayload } from "../../../shared/api";
 import "../home/home.scss";
 import "./seatSelection.scss";
@@ -678,23 +678,16 @@ const SeatSelection = () => {
 
   return (
     <main className="seat-selection-page">
-      <header className="seat-selection-page__header">
-        <div className="seat-selection-page__shell seat-selection-page__header-inner">
-          <div className="seat-selection-page__header-brand-group">
-            <button type="button" className="seat-selection-page__back" onClick={() => navigate(backPath)}>
-              <ArrowBackRoundedIcon fontSize="small" />
-              <span>Back to results</span>
-            </button>
-            <a className="seat-selection-page__brand" href="/">
-              Flyvora
-            </a>
-          </div>
+      <BookingHeader
+        backLabel="Back to results"
+        onBack={() => navigate(backPath)}
+        rightContent={
           <div className={`seat-selection-page__hold seat-selection-page__hold--${holdTone}`}>
             <TimerOutlinedIcon fontSize="small" />
             <span>{hasActiveReservation ? formatHoldTime(holdSeconds) : "Pick a seat"}</span>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <section className="seat-selection-page__hero">
         <div className="seat-selection-page__shell seat-selection-page__hero-layout">
@@ -975,6 +968,10 @@ const SeatSelection = () => {
 };
 
 export default SeatSelection;
+
+
+
+
 
 
 

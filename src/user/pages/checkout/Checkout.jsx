@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import VerifiedUserRoundedIcon from "@mui/icons-material/VerifiedUserRounded";
@@ -24,6 +23,7 @@ import {
 import { clearCheckoutDraft, readCheckoutDraft, saveCheckoutDraft } from "../../search/checkoutStorage";
 import { readTravelerProfile, saveTravelerProfile } from "../../search/travelerProfileStorage";
 import { downloadBookingPdf, viewBookingPdf } from "../../bookings/bookingPdf";
+import { BookingHeader } from "../../components/layout/Header";
 import { buildApiUrl, readApiPayload } from "../../../shared/api";
 import "../home/home.scss";
 import "./checkout.scss";
@@ -554,15 +554,15 @@ const Checkout = () => {
         </div>
       ) : null}
 
-      <header className="checkout-page__header">
-        <div className="checkout-page__shell checkout-page__header-inner">
-          <div className="checkout-page__header-start">
-            <button type="button" className="checkout-page__back" onClick={handleBackToSeatSelection}><ArrowBackRoundedIcon fontSize="small" /><span>Back to seats</span></button>
-            <a className="checkout-page__brand" href="/">Flyvora</a>
+      <BookingHeader
+        backLabel="Back to seats"
+        onBack={handleBackToSeatSelection}
+        rightContent={
+          <div className="checkout-page__avatar-shell">
+            {user?.picture ? <img src={user.picture} alt={displayName} /> : displayInitials}
           </div>
-          <div className="checkout-page__avatar-shell">{user?.picture ? <img src={user.picture} alt={displayName} /> : displayInitials}</div>
-        </div>
-      </header>
+        }
+      />
 
       <section className="checkout-page__hero">
         <div className="checkout-page__shell">
@@ -645,6 +645,9 @@ const Checkout = () => {
 };
 
 export default Checkout;
+
+
+
 
 
 

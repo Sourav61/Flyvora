@@ -153,19 +153,29 @@ const buildSeatMap = (seatStatusByCode = {}, activeReservedSeatCode = "", holdEx
         reservedByCurrentTraveler: false,
       };
       const fallbackReservedUntil = seatCode === activeReservedSeatCode ? holdExpiresAt : "";
-      const isHeldByCurrentTraveler =
-        seatState.status === "reserved" &&
-        ((Boolean(seatState.reservedByCurrentTraveler) && hasFutureHold(seatState.reservedUntil)) ||
-          (seatCode === activeReservedSeatCode && hasFutureHold(fallbackReservedUntil)));
-      const isReservedByOther = seatState.status === "reserved" && !isHeldByCurrentTraveler;
+      const hasOptimisticCurrentTravelerHold =
+        seatCode === activeReservedSeatCode && hasFutureHold(fallbackReservedUntil);
       const isBooked = seatState.status === "booked";
+      const isHeldByCurrentTraveler =
+        hasOptimisticCurrentTravelerHold ||
+        (
+          seatState.status === "reserved" &&
+          Boolean(seatState.reservedByCurrentTraveler) &&
+          hasFutureHold(seatState.reservedUntil)
+        );
+      const normalizedStatus = isBooked
+        ? "booked"
+        : (seatState.status === "reserved" || hasOptimisticCurrentTravelerHold)
+          ? "reserved"
+          : "available";
+      const isReservedByOther = normalizedStatus === "reserved" && !isHeldByCurrentTraveler;
       const seatFee = getSeatFee(rowNumber, seatCode);
       const isWindow = column === "A" || column === "F";
       const isAisle = column === "C" || column === "D";
 
       return {
         seatCode,
-        status: seatState.status || "available",
+        status: normalizedStatus,
         isOccupied: isBooked,
         isBooked,
         isReservedByOther,
@@ -227,9 +237,10 @@ const SeatSelection = () => {
   const travelerLabel = user?.name || formatTravelerSummary(searchState?.travelers || {});
   const backPath = searchState ? buildSearchPath(searchState) : "/flights";
   const hasActiveReservation = Boolean(draftState?.reservationBookingId && hasFutureHold(draftState?.holdExpiresAt));
+  const isHoldExpired = Boolean(draftState?.reservationBookingId) && !hasFutureHold(draftState?.holdExpiresAt);
   const holdTone = !draftState?.reservationBookingId
     ? "active"
-    : holdSeconds === 0
+    : isHoldExpired
       ? "expired"
       : holdSeconds <= 90
         ? "warning"
@@ -473,7 +484,7 @@ const SeatSelection = () => {
   ]);
 
   useEffect(() => {
-    if (!draftState?.reservationBookingId || holdSeconds !== 0) {
+    if (!draftState?.reservationBookingId || !isHoldExpired) {
       return undefined;
     }
 
@@ -508,7 +519,7 @@ const SeatSelection = () => {
     return () => {
       isActive = false;
     };
-  }, [draftState?.holdExpiresAt, draftState?.reservationBookingId, holdSeconds]);
+  }, [draftState?.holdExpiresAt, draftState?.reservationBookingId, isHoldExpired]);
 
   useEffect(() => {
     if (!hasLoadedSeatMap || !selectedFlight || !searchState || !selectedSeatCode || !selectedSeat || !hasActiveReservation) {
@@ -572,15 +583,32 @@ const SeatSelection = () => {
         savedAt: new Date().toISOString(),
       });
       clearCheckoutDraft();
-      setSeatStatusByCode((current) => ({
-        ...current,
-        [seatCode]: {
-          status: "reserved",
-          isOccupied: false,
-          reservedUntil: payload.booking.holdExpiresAt,
-          reservedByCurrentTraveler: true,
-        },
-      }));
+      setSeatStatusByCode((current) => {
+        const nextSeatStatusByCode = Object.fromEntries(
+          Object.entries(current).map(([currentSeatCode, currentSeatState]) => [
+            currentSeatCode,
+            currentSeatState?.reservedByCurrentTraveler && currentSeatCode !== seatCode
+              ? {
+                  ...currentSeatState,
+                  status: "available",
+                  isOccupied: false,
+                  reservedUntil: null,
+                  reservedByCurrentTraveler: false,
+                }
+              : currentSeatState,
+          ])
+        );
+
+        return {
+          ...nextSeatStatusByCode,
+          [seatCode]: {
+            status: "reserved",
+            isOccupied: false,
+            reservedUntil: payload.booking.holdExpiresAt,
+            reservedByCurrentTraveler: true,
+          },
+        };
+      });
       setSeatMapRequestKey((current) => current + 1);
     } catch (error) {
       setSeatNotice(error.message || "We could not reserve that seat right now.");
@@ -674,7 +702,6 @@ const SeatSelection = () => {
     : "No seat selected";
   const seatDescriptor = selectedSeat ? `${selectedSeat.seatType} | ${seatPosition}` : "Pick a seat to continue";
   const seatPriceLabel = seatFee === 0 ? "Complimentary" : formatCurrency(seatFee);
-  const isHoldExpired = Boolean(draftState?.reservationBookingId) && holdSeconds === 0;
 
   return (
     <main className="seat-selection-page">

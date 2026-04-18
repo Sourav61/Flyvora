@@ -509,6 +509,7 @@ const SearchResults = () => {
     saveSeatSelectionDraft(seatSelectionPayload);
 
     if (isAuthenticated) {
+      console.log('check seat selection payload', seatSelectionPayload);
       navigate(`/flights/${selectedFlight.id}`, { state: seatSelectionPayload });
       return;
     }

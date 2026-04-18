@@ -336,8 +336,8 @@ const Checkout = () => {
   const seatFee = Number(selectedSeat?.seatFee || 0);
   const grandTotal = Number(selectedFlight?.totalFare || 0) + seatFee;
   const hasActiveReservation = Boolean(draftState?.reservationBookingId && hasFutureHold(draftState?.holdExpiresAt));
-  const holdTone = !draftState?.reservationBookingId ? "expired" : holdSeconds === 0 ? "expired" : holdSeconds <= 120 ? "warning" : "active";
-  const isHoldExpired = Boolean(draftState?.reservationBookingId) && holdSeconds === 0;
+  const isHoldExpired = Boolean(draftState?.reservationBookingId) && !hasFutureHold(draftState?.holdExpiresAt);
+  const holdTone = !draftState?.reservationBookingId ? "expired" : isHoldExpired ? "expired" : holdSeconds <= 120 ? "warning" : "active";
   const seatDescriptor = selectedSeat ? `${selectedSeat.seatType} | ${getSeatPosition(selectedSeatCode)}` : "Choose a seat";
   const displayName = user?.name || contactDetails.name || "Traveler";
   const displayInitials = displayName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();

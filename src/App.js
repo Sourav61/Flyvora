@@ -16,7 +16,9 @@ import SearchResults from "./user/pages/searchResults/SearchResults";
 import SeatSelection from "./user/pages/seatSelection/SeatSelection";
 import Checkout from "./user/pages/checkout/Checkout";
 import FeaturedJourney from "./user/pages/featuredJourney/FeaturedJourney";
+import ContactUs from "./user/pages/contact/ContactUs";
 import BookingList from "./user/components/BookingList/BookingList";
+import AdminLogin from "./admin/pages/auth/AdminLogin";
 
 // Internal Dependancies
 
@@ -26,6 +28,7 @@ import "bootstrap/dist/css/bootstrap.css";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { Navigate, Routes, Route, useLocation } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
+import { AdminSessionProvider, useAdminSession } from "./admin/auth/AdminSessionContext";
 
 // Static Data
 import { productInputs, userInputs } from "./admin/formSource";
@@ -46,32 +49,21 @@ function ProtectedRoute({ children }) {
 }
 
 function AdminRoute({ children }) {
-  const { isAuthenticated, isLoading, user } = useAuth0();
+  const { isAuthenticated, isLoading } = useAdminSession();
   const location = useLocation();
-
-  console.log(isAuthenticated, isLoading, user);
 
   if (isLoading) {
     return null;
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ returnTo: location.pathname }} />;
-  }
-
-  // Auth can be true before profile claims are hydrated on first paint.
-  if (!user) {
-    return null;
-  }
-
-  // Check for admin role in Auth0 custom claim namespace
-  const userRoles = user?.["https://flyvora.com/roles"] || [];
-  const hasAdminRole =
-    Array.isArray(userRoles) &&
-    userRoles.some((role) => String(role).trim().toLowerCase() === "admin");
-
-  if (!hasAdminRole) {
-    return <Navigate to="/" replace />;
+    return (
+      <Navigate
+        to="/admin/login"
+        replace
+        state={{ returnTo: `${location.pathname}${location.search}${location.hash}` }}
+      />
+    );
   }
 
   return children;
@@ -88,93 +80,97 @@ function App() {
   });
 
   return (
-    <div className="app">
-      <ThemeProvider theme={muiTheme}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route
-            path="/bookings"
-            element={
-              <ProtectedRoute>
-                <BookingList />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/flights" element={<SearchResults />} />
-          <Route path="/flights/:flightId" element={<SeatSelection />} />
+    <AdminSessionProvider>
+      <div className="app">
+        <ThemeProvider theme={muiTheme}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route
+              path="/bookings"
+              element={
+                <ProtectedRoute>
+                  <BookingList />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/flights" element={<SearchResults />} />
+            <Route path="/flights/:flightId" element={<SeatSelection />} />
           <Route path="/checkout/:flightId" element={<Checkout />} />
           <Route path="/journeys/:journeySlug" element={<FeaturedJourney />} />
+          <Route path="/contact" element={<ContactUs />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
-          <Route
-            path="/admin"
-            element={
-              <AdminRoute>
-                <Dashboard />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/bookings"
-            element={
-              <AdminRoute>
-                <Bookings />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/users"
-            element={
-              <AdminRoute>
-                <List />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/users/:userId"
-            element={
-              <AdminRoute>
-                <Single />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/users/new"
-            element={
-              <AdminRoute>
-                <New inputs={userInputs} title="Add New User" />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/flights"
-            element={
-              <AdminRoute>
-                <List />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/flights/:flightId"
-            element={
-              <AdminRoute>
-                <Single />
-              </AdminRoute>
-            }
-          />
-          <Route
-            path="/admin/flights/new"
-            element={
-              <AdminRoute>
-                <New inputs={productInputs} title="Add New flight" />
-              </AdminRoute>
-            }
-          />
-        </Routes>
-      </ThemeProvider>
-    </div>
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <Dashboard />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/bookings"
+              element={
+                <AdminRoute>
+                  <Bookings />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <AdminRoute>
+                  <List />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/users/:userId"
+              element={
+                <AdminRoute>
+                  <Single />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/users/new"
+              element={
+                <AdminRoute>
+                  <New inputs={userInputs} title="Add New User" />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/flights"
+              element={
+                <AdminRoute>
+                  <List />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/flights/:flightId"
+              element={
+                <AdminRoute>
+                  <Single />
+                </AdminRoute>
+              }
+            />
+            <Route
+              path="/admin/flights/new"
+              element={
+                <AdminRoute>
+                  <New inputs={productInputs} title="Add New flight" />
+                </AdminRoute>
+              }
+            />
+          </Routes>
+        </ThemeProvider>
+      </div>
+    </AdminSessionProvider>
   );
 }
 

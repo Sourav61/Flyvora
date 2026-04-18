@@ -1,0 +1,323 @@
+@use "../../../styles/globals" as *;
+
+.contact-page {
+  background:
+    radial-gradient(circle at top left, rgba($color-primary, 0.1), transparent 34%),
+    linear-gradient(180deg, #f7f9fc 0%, #f5f7fb 52%, #eef2f8 100%);
+  color: $color-text;
+  min-height: 100vh;
+
+  &__hero {
+    padding: clamp(4.5rem, 8vw, 7rem) 0 clamp(2rem, 5vw, 3.5rem);
+  }
+
+  &__hero-inner,
+  &__content-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.7fr);
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+  }
+
+  &__hero-copy,
+  &__form-card,
+  &__info-card,
+  &__hero-card {
+    border: 1px solid rgba($color-border, 0.34);
+    background: rgba($color-surface-raised, 0.94);
+    box-shadow: 0 24px 52px rgba(25, 28, 30, 0.06);
+  }
+
+  &__hero-copy,
+  &__hero-card {
+    border-radius: 1.75rem;
+    padding: clamp(1.6rem, 3vw, 2.4rem);
+  }
+
+  &__eyebrow {
+    margin: 0 0 1rem;
+    color: $color-primary;
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin: 0;
+    max-width: 16ch;
+    font: 800 clamp(2.7rem, 6vw, 4.4rem) "Manrope", sans-serif;
+    line-height: 0.98;
+    letter-spacing: -0.05em;
+  }
+
+  &__intro {
+    margin: 1.4rem 0 0;
+    max-width: 42rem;
+    color: $color-text-muted;
+    font-size: 1.04rem;
+    line-height: 1.85;
+  }
+
+  &__hero-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem;
+    margin-top: 1.6rem;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      min-height: 40px;
+      padding: 0 0.9rem;
+      border-radius: $radius-pill;
+      background: rgba($color-primary, 0.08);
+      color: $color-primary-dark;
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+  }
+
+  &__hero-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+    background:
+      linear-gradient(180deg, rgba($color-primary, 0.08), rgba($color-surface-raised, 0.96)),
+      rgba($color-surface-raised, 0.94);
+
+    strong {
+      font: 800 clamp(1.5rem, 3vw, 1.95rem) "Manrope", sans-serif;
+      line-height: 1.1;
+      word-break: break-word;
+    }
+
+    p {
+      margin: 0;
+      color: $color-text-muted;
+      line-height: 1.75;
+    }
+
+    a {
+      width: fit-content;
+      color: $color-primary;
+      font-weight: 700;
+      text-decoration: none;
+    }
+  }
+
+  &__card-label,
+  &__section-head span,
+  &__availability-row span {
+    color: $color-primary;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  &__content {
+    padding-bottom: $spacing-3xl;
+  }
+
+  &__form-card,
+  &__info-card {
+    border-radius: 1.5rem;
+    padding: clamp(1.35rem, 3vw, 2rem);
+  }
+
+  &__section-head {
+    margin-bottom: 1.5rem;
+
+    h2 {
+      margin: 0.5rem 0 0;
+      font: 800 clamp(1.7rem, 4vw, 2.4rem) "Manrope", sans-serif;
+      letter-spacing: -0.04em;
+    }
+
+    p {
+      margin: 0.8rem 0 0;
+      color: $color-text-muted;
+      line-height: 1.75;
+    }
+
+    &--compact {
+      h2 {
+        font-size: clamp(1.35rem, 3vw, 1.8rem);
+      }
+    }
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+  }
+
+  &__field-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+
+    span {
+      color: $color-text;
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid rgba($color-border, 0.44);
+      border-radius: 1rem;
+      background: linear-gradient(180deg, rgba($color-surface, 0.78), rgba($color-surface-raised, 0.98));
+      color: $color-text;
+      padding: 0.95rem 1rem;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input {
+      min-height: 54px;
+    }
+
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: rgba($color-primary, 0.52);
+      box-shadow: 0 0 0 3px rgba($color-primary, 0.12);
+    }
+
+    &--message {
+      grid-column: 1 / -1;
+    }
+  }
+
+  &__status {
+    margin: 0;
+    padding: 0.95rem 1rem;
+    border-radius: 1rem;
+    font-weight: 600;
+    line-height: 1.65;
+
+    &--success {
+      background: rgba($color-success, 0.1);
+      color: #146c39;
+    }
+
+    &--error {
+      background: rgba($color-danger, 0.08);
+      color: $color-danger;
+    }
+
+    &--neutral {
+      background: rgba($color-info-soft, 0.9);
+      color: $color-primary-dark;
+    }
+  }
+
+  &__submit {
+    width: fit-content;
+    min-width: 190px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+  }
+
+  &__side {
+    display: flex;
+    flex-direction: column;
+    gap: 1.35rem;
+  }
+
+  &__note-list,
+  &__availability {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__note {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.9rem;
+    align-items: start;
+
+    strong {
+      display: block;
+      margin-bottom: 0.35rem;
+      font: 800 1rem "Manrope", sans-serif;
+    }
+
+    p {
+      margin: 0;
+      color: $color-text-muted;
+      line-height: 1.7;
+    }
+  }
+
+  &__note-icon {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: rgba($color-primary, 0.1);
+    color: $color-primary;
+  }
+
+  &__availability-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba($color-border, 0.3);
+
+    &:first-child {
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    strong {
+      color: $color-text;
+      line-height: 1.7;
+    }
+  }
+}
+
+@media (max-width: 980px) {
+  .contact-page {
+    &__hero-inner,
+    &__content-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+@media (max-width: 720px) {
+  .contact-page {
+    &__field-grid {
+      grid-template-columns: 1fr;
+    }
+
+    h1 {
+      max-width: none;
+    }
+
+    &__submit {
+      width: 100%;
+    }
+  }
+}

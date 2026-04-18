@@ -1,7 +1,7 @@
 import React from "react";
 import AlternateEmailRoundedIcon from "@mui/icons-material/AlternateEmailRounded";
 import LanguageRoundedIcon from "@mui/icons-material/LanguageRounded";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export const PublicFooter = () => {
   const location = useLocation();
@@ -18,7 +18,7 @@ export const PublicFooter = () => {
         <div className="home-page__footer-column">
           <span>Company</span>
           <a href={buildHomeAnchor("#destinations")}>Explore</a>
-          <a href={buildHomeAnchor("#support")}>Support</a>
+          <Link to="/contact">Support</Link>
         </div>
         <div className="home-page__footer-column">
           <span>Legal</span>
@@ -28,7 +28,7 @@ export const PublicFooter = () => {
         <div className="home-page__footer-column home-page__footer-column--connect">
           <span>Connect</span>
           <div className="home-page__socials">
-            <a href="mailto:hello@flyvora.com" aria-label="Email Flyvora">
+            <a href="mailto:flyvora18@gmail.com" aria-label="Email Flyvora">
               <AlternateEmailRoundedIcon fontSize="small" />
             </a>
             <a href="https://flyvora.com" aria-label="Visit Flyvora website">

@@ -1,6 +1,7 @@
 @use "../../../styles/globals" as *;
 
 .seat-selection-page {
+  --booking-header-shell-max: 1280px;
   min-height: 100vh;
   background:
     radial-gradient(circle at top center, rgba($color-primary, 0.08), transparent 32%),
@@ -18,18 +19,6 @@
     margin: 0 auto;
   }
 
-  &__header {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    background: rgba(#eceef1, 0.92);
-    backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba($color-border, 0.26);
-  }
-
-  &__header-inner,
-  &__header-brand-group,
-  &__back,
   &__hold,
   &__legend,
   &__summary-passenger,
@@ -42,44 +31,24 @@
     gap: 1rem;
   }
 
-  &__header-inner {
-    padding: 1rem 0;
-  }
-
-  &__header-brand-group {
-    justify-content: flex-start;
-    gap: 0.9rem;
-  }
-
-  &__brand {
-    color: $color-primary;
-    text-decoration: none;
-    font: 800 1.6rem "Manrope", sans-serif;
-    letter-spacing: -0.05em;
-  }
-
-  &__back {
-    border: 0;
-    background: none;
-    color: $color-text;
-    cursor: pointer;
-    font-weight: 700;
-  }
-
   &__hold {
-    padding: 0.65rem 0.9rem;
+    padding: 0.72rem 1rem;
     border-radius: 999px;
-    background: rgba($color-primary, 0.08);
+    border: 1px solid rgba($color-primary, 0.12);
+    background: linear-gradient(135deg, rgba($color-primary, 0.12), rgba(#ffffff, 0.86));
     color: $color-primary;
     font-weight: 800;
+    box-shadow: 0 16px 28px rgba($color-primary, 0.12);
 
     &--warning {
-      background: rgba(#ffb17a, 0.22);
+      border-color: rgba(#ffb17a, 0.26);
+      background: linear-gradient(135deg, rgba(#ffd9b8, 0.55), rgba(#ffffff, 0.9));
       color: #b35523;
     }
 
     &--expired {
-      background: rgba(#ffd9d4, 0.75);
+      border-color: rgba(#f5a7a0, 0.34);
+      background: linear-gradient(135deg, rgba(#ffd9d4, 0.9), rgba(#ffffff, 0.9));
       color: #b03621;
     }
   }
@@ -617,21 +586,9 @@
       width: min(100% - 1.5rem, 1280px);
     }
 
-    &__header-inner {
-      padding: 0.85rem 0;
-    }
-
-    &__back span {
-      display: none;
-    }
-
-    &__brand {
-      font-size: 1.5rem;
-    }
-
     &__hold {
-      padding: 0;
-      background: none;
+      padding: 0.62rem 0.82rem;
+      box-shadow: 0 12px 24px rgba($color-primary, 0.12);
     }
 
     &__hero {

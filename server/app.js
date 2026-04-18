@@ -1,8 +1,10 @@
 const express = require("express");
 const authRoutes = require("./routes/authRoutes");
+const adminAuthRoutes = require("./routes/adminAuthRoutes");
 const flightRoutes = require("./routes/flightRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
+const contactRoutes = require("./routes/contactRoutes");
 const { notFoundHandler, errorHandler } = require("./middleware/errorHandler");
 const cors = require("cors");
 
@@ -31,9 +33,11 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/admin-auth", adminAuthRoutes);
 app.use("/api/flights", flightRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/contact", contactRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 

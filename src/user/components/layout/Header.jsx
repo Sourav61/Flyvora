@@ -13,6 +13,7 @@ import LogoutRoundedIcon from "@mui/icons-material/LogoutRounded";
 import LuggageRoundedIcon from "@mui/icons-material/LuggageRounded";
 import MenuRoundedIcon from "@mui/icons-material/MenuRounded";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
+import "./bookingHeader.scss";
 
 const InteractiveItem = ({
   item,
@@ -94,6 +95,7 @@ export const PublicHeader = () => {
   const userDisplayName = user?.given_name || user?.name || "Traveler";
   const startGoogleLogin = createGoogleLoginHandler(loginWithRedirect);
   const buildHomeAnchor = (hash) => (location.pathname === "/" ? hash : `/${hash}`);
+  const adminHref = "/admin/login";
   const returnTo = `${location.pathname}${location.search}${location.hash}`;
   const closeMenus = () => {
     setIsMobileMenuOpen(false);
@@ -178,7 +180,7 @@ export const PublicHeader = () => {
     },
     {
       label: "Support",
-      href: buildHomeAnchor("#support"),
+      to: "/contact",
     },
   ];
 
@@ -213,7 +215,7 @@ export const PublicHeader = () => {
     },
     {
       label: "Support",
-      href: buildHomeAnchor("#support"),
+      to: "/contact",
       icon: <ContactSupportRoundedIcon fontSize="inherit" />,
     },
   ];
@@ -221,7 +223,7 @@ export const PublicHeader = () => {
   const mobileMetaItems = [
     {
       label: "Settings",
-      onClick: () => window.location.assign("/admin"),
+      onClick: () => window.location.assign(adminHref),
     },
     {
       label: "Privacy Policy",
@@ -260,7 +262,7 @@ export const PublicHeader = () => {
     },
     {
       label: "Admin",
-      onClick: () => window.location.assign("/admin"),
+      onClick: () => window.location.assign(adminHref),
     },
   ];
 
@@ -338,7 +340,7 @@ export const PublicHeader = () => {
               )
               : (
                 <>
-                  <a href="/admin">Admin</a>
+                  <a href={adminHref}>Admin</a>
                   <button type="button" className="button button--primary" onClick={() => startGoogleLogin(returnTo)}>
                     Login
                   </button>
@@ -446,27 +448,43 @@ export const PublicHeader = () => {
 };
 
 export const BookingHeader = ({
-  pageClassName,
   brand = { label: "Flyvora", href: "/" },
   backLabel,
   onBack,
-  startClassName,
   rightContent = null,
-}) => (
-  <header className={`${pageClassName}__header`}>
-    <div className={`${pageClassName}__shell ${pageClassName}__header-inner`}>
-      <div className={startClassName || `${pageClassName}__header-start`}>
-        <button type="button" className={`${pageClassName}__back`} onClick={onBack}>
-          <ArrowBackRoundedIcon fontSize="small" />
-          <span>{backLabel}</span>
-        </button>
+}) => {
+  const location = useLocation();
+  const isCheckoutPage = location.pathname.startsWith("/checkout");
+  const sectionLabel = isCheckoutPage ? "Secure payment" : "Cabin selection";
+  const sectionTitle = isCheckoutPage ? "Checkout" : "Seat selection";
+  const sectionDescription = isCheckoutPage
+    ? "Review traveler details and finish payment with confidence."
+    : "Choose the seat that fits your flight best before you continue.";
 
-        <InteractiveItem item={brand} className={`${pageClassName}__brand`}>
-          {brand.label}
-        </InteractiveItem>
+  return (
+    <header className="booking-header">
+      <div className="booking-header__shell">
+        <div className="booking-header__start">
+          <button type="button" className="booking-header__back" onClick={onBack}>
+            <ArrowBackRoundedIcon fontSize="small" />
+            <span>{backLabel}</span>
+          </button>
+
+          <div className="booking-header__brand-block">
+            <InteractiveItem item={brand} className="booking-header__brand">
+              {brand.label}
+            </InteractiveItem>
+
+            <div className="booking-header__context">
+              <span className="booking-header__eyebrow">{sectionLabel}</span>
+              <strong>{sectionTitle}</strong>
+              <p>{sectionDescription}</p>
+            </div>
+          </div>
+        </div>
+
+        {rightContent ? <div className="booking-header__right">{rightContent}</div> : null}
       </div>
-
-      {rightContent}
-    </div>
-  </header>
-);
+    </header>
+  );
+};

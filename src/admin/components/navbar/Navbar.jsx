@@ -1,10 +1,17 @@
 import "./navbar.scss";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import LanguageOutlinedIcon from "@mui/icons-material/LanguageOutlined";
-import { useAuth0 } from "@auth0/auth0-react";
+import { useNavigate } from "react-router-dom";
+import { useAdminSession } from "../../auth/AdminSessionContext";
 
 const Navbar = () => {
-  const { isAuthenticated, logout, user } = useAuth0();
+  const navigate = useNavigate();
+  const { admin, adminName, isAuthenticated, logout } = useAdminSession();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/admin/login", { replace: true });
+  };
 
   return (
     <div className="navbar">
@@ -36,17 +43,15 @@ const Navbar = () => {
           <div className="item">
             {isAuthenticated &&
               <div className="user-info">
-                <img
-                  src={user?.picture}
-                  alt=""
-                  className="avatar"
-                />
+                <div className="avatar avatar--fallback" aria-hidden="true">
+                  {adminName.charAt(0).toUpperCase()}
+                </div>
                 <p className="p-login">
-                  {user.name}
+                  {admin?.email || adminName}
                 </p>
               </div>
             }
-            <button className="btn-logout" onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>
+            <button className="btn-logout" onClick={handleLogout}>
               Log Out
             </button>
           </div>

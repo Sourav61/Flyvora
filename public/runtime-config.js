@@ -1,4 +1,3 @@
 // Optional runtime override for deployed environments.
-// Example:
-// window.__FLYVORA_CONFIG__ = { apiBaseUrl: "https://api-preprod.example.com" };
+// This file is overwritten during start/build when env vars are available.
 window.__FLYVORA_CONFIG__ = window.__FLYVORA_CONFIG__ || {};

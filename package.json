@@ -37,7 +37,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "generate:runtime-config": "node scripts/generateRuntimeConfig.js",
+    "prestart": "npm run generate:runtime-config",
     "start": "react-scripts start",
+    "prebuild": "npm run generate:runtime-config",
     "server": "node server/server.js",
     "server:dev": "node --watch server/server.js",
     "server:test-auth": "node server/scripts/testAuthFlow.js",

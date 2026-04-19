@@ -26,6 +26,10 @@ export const getApiBaseUrl = () => {
   const runtimeApiBaseUrl = readRuntimeApiBaseUrl();
 
   if (runtimeApiBaseUrl) {
+    if (typeof window !== "undefined" && !isLocalHostname(window.location.hostname) && isLoopbackUrl(runtimeApiBaseUrl)) {
+      return "";
+    }
+
     return runtimeApiBaseUrl;
   }
 

@@ -1,86 +1,56 @@
-import { useAuth0 } from "@auth0/auth0-react";
-import { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { clearAdminSession, hasActiveAdminSession, saveAdminSession } from "../../auth/adminSession";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAdminSession } from "../../auth/AdminSessionContext";
 import "../../../styles/auth.scss";
 
-const getApiBaseUrl = () =>
-  (process.env.REACT_APP_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
+const resolveAdminReturnTo = (candidatePath) => {
+  if (typeof candidatePath !== "string") {
+    return "/admin";
+  }
 
-const AdminLogin = () => {
-  const { isAuthenticated, isLoading, loginWithRedirect, user } = useAuth0();
-  const location = useLocation();
+  return candidatePath.startsWith("/admin") ? candidatePath : "/admin";
+};
+
+function AdminLogin() {
   const navigate = useNavigate();
-  const returnTo = useMemo(() => {
-    const stateReturnTo = location.state?.returnTo;
-    return stateReturnTo && stateReturnTo.startsWith("/admin") ? stateReturnTo : "/admin";
-  }, [location.state?.returnTo]);
-  const [credentials, setCredentials] = useState({ username: "", password: "" });
-  const [status, setStatus] = useState("idle");
+  const location = useLocation();
+  const { isAuthenticated, isLoading, login } = useAdminSession();
+  const [formValues, setFormValues] = useState({
+    email: "",
+    password: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [helperMessage, setHelperMessage] = useState("");
+  const returnTo = resolveAdminReturnTo(location.state?.returnTo);
 
   useEffect(() => {
-    if (isLoading || isAuthenticated) {
-      return;
-    }
-
-    loginWithRedirect({
-      appState: { returnTo: "/admin/login" },
-      authorizationParams: {
-        connection: "google-oauth2",
-        prompt: "login",
-      },
-    });
-  }, [isAuthenticated, isLoading, loginWithRedirect]);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      clearAdminSession();
-      return;
-    }
-
-    if (hasActiveAdminSession()) {
+    if (!isLoading && isAuthenticated) {
       navigate(returnTo, { replace: true });
     }
-  }, [isAuthenticated, navigate, returnTo]);
+  }, [isAuthenticated, isLoading, navigate, returnTo]);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+
+    setFormValues((currentValues) => ({
+      ...currentValues,
+      [name]: value,
+    }));
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setStatus("submitting");
     setErrorMessage("");
-    setHelperMessage("");
+    setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${getApiBaseUrl()}/api/admin/session/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: credentials.username,
-          password: credentials.password,
-          auth0UserId: user?.sub || "",
-          auth0Email: user?.email || "",
-        }),
-      });
-      const payload = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        throw new Error(payload.message || "Admin sign-in failed.");
-      }
-
-      saveAdminSession(payload.session);
-      if (payload.session?.isUsingFallbackCredentials) {
-        setHelperMessage("Local demo credentials are active. Set ADMIN_DASHBOARD_USERNAME and ADMIN_DASHBOARD_PASSWORD before deployment.");
-      }
+      await login(formValues);
       navigate(returnTo, { replace: true });
     } catch (error) {
-      clearAdminSession();
-      setErrorMessage(error.message || "Admin sign-in failed.");
-      setStatus("error");
-      return;
+      setErrorMessage(error.message || "We could not sign you in to the admin dashboard.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setStatus("success");
   };
 
   if (isLoading) {
@@ -88,20 +58,8 @@ const AdminLogin = () => {
       <div className="auth-layout">
         <div className="auth-layout__card">
           <p className="auth-layout__eyebrow">Admin Access</p>
-          <h1 className="auth-layout__title">Checking your account.</h1>
-          <p className="auth-layout__status">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <div className="auth-layout">
-        <div className="auth-layout__card">
-          <p className="auth-layout__eyebrow">Admin Access</p>
-          <h1 className="auth-layout__title">Redirecting to Google sign-in.</h1>
-          <p className="auth-layout__status">You need your Flyvora account first, then your admin credentials.</p>
+          <h1 className="auth-layout__title">Checking your dashboard session.</h1>
+          <p className="auth-layout__status">Please wait a moment...</p>
         </div>
       </div>
     );
@@ -109,44 +67,59 @@ const AdminLogin = () => {
 
   return (
     <div className="auth-layout">
-      <div className="auth-layout__card">
+      <div className="auth-layout__panel">
         <p className="auth-layout__eyebrow">Admin Access</p>
-        <h1 className="auth-layout__title">Enter admin credentials.</h1>
+        <h1 className="auth-layout__title">Sign in to the operations dashboard.</h1>
         <p className="auth-layout__copy">
-          You are signed in as {user?.email || user?.name || "this user"}. Use the admin username and password to open the dashboard.
+          Admin access uses a separate dashboard account. Your regular traveler login does not unlock this area.
         </p>
 
         <form className="auth-layout__form" onSubmit={handleSubmit}>
-          <label className="auth-layout__field">
-            <span>Admin username</span>
+          <label className="auth-layout__field" htmlFor="admin-email">
+            <span>Email</span>
             <input
-              type="text"
-              value={credentials.username}
-              onChange={(event) => setCredentials((current) => ({ ...current, username: event.target.value }))}
-              placeholder="Enter admin username"
-              autoComplete="username"
+              id="admin-email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              value={formValues.email}
+              onChange={handleChange}
+              placeholder="Enter your admin email"
+              required
             />
           </label>
-          <label className="auth-layout__field">
+
+          <label className="auth-layout__field" htmlFor="admin-password">
             <span>Password</span>
             <input
+              id="admin-password"
+              name="password"
               type="password"
-              value={credentials.password}
-              onChange={(event) => setCredentials((current) => ({ ...current, password: event.target.value }))}
-              placeholder="Enter admin password"
               autoComplete="current-password"
+              value={formValues.password}
+              onChange={handleChange}
+              placeholder="Enter your password"
+              required
             />
           </label>
-          <button type="submit" className="button button--primary" disabled={status === "submitting"}>
-            {status === "submitting" ? "Checking credentials..." : "Open admin dashboard"}
+
+          {errorMessage ? (
+            <p className="auth-layout__message auth-layout__message--error">{errorMessage}</p>
+          ) : null}
+
+          <button type="submit" className="button button--primary" disabled={isSubmitting}>
+            {isSubmitting ? "Signing in..." : "Enter Admin Dashboard"}
           </button>
         </form>
 
-        {errorMessage ? <p className="auth-layout__status auth-layout__status--error">{errorMessage}</p> : null}
-        {!errorMessage && helperMessage ? <p className="auth-layout__status">{helperMessage}</p> : null}
+        <div className="auth-layout__footer">
+          <Link className="auth-layout__link" to="/">
+            Return to Flyvora home
+          </Link>
+        </div>
       </div>
     </div>
   );
-};
+}
 
 export default AdminLogin;

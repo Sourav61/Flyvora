@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import EventSeatRoundedIcon from "@mui/icons-material/EventSeatRounded";
 import WifiRoundedIcon from "@mui/icons-material/WifiRounded";
@@ -18,6 +17,8 @@ import {
   saveSeatSelectionDraft,
 } from "../../search/seatSelectionStorage";
 import { clearCheckoutDraft, saveCheckoutDraft } from "../../search/checkoutStorage";
+import { BookingHeader } from "../../components/layout/Header";
+import { buildApiUrl, readApiPayload } from "../../../shared/api";
 import "../home/home.scss";
 import "./seatSelection.scss";
 
@@ -46,8 +47,6 @@ const formatIsoTime = (value) => timeFormatter.format(new Date(value));
 const formatIsoDate = (value) => dateFormatter.format(new Date(value));
 const formatHoldTime = (seconds) =>
   `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`;
-const getApiBaseUrl = () =>
-  (process.env.REACT_APP_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
 
 const buildSeatMapPath = (flightId, traveler = {}) => {
   const params = new URLSearchParams();
@@ -65,8 +64,8 @@ const buildSeatMapPath = (flightId, traveler = {}) => {
 };
 
 const fetchJson = async (path) => {
-  const response = await fetch(`${getApiBaseUrl()}${path}`);
-  const payload = await response.json().catch(() => ({}));
+  const response = await fetch(buildApiUrl(path));
+  const payload = await readApiPayload(response, "We could not refresh live seat availability right now.");
 
   if (!response.ok) {
     throw new Error(payload.message || "We could not refresh live seat availability right now.");
@@ -76,12 +75,12 @@ const fetchJson = async (path) => {
 };
 
 const postJson = async (path, payload) => {
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
+  const response = await fetch(buildApiUrl(path), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  const data = await response.json().catch(() => ({}));
+  const data = await readApiPayload(response, "We could not reserve that seat right now.");
 
   if (!response.ok) {
     throw new Error(data.message || "We could not reserve that seat right now.");
@@ -154,19 +153,29 @@ const buildSeatMap = (seatStatusByCode = {}, activeReservedSeatCode = "", holdEx
         reservedByCurrentTraveler: false,
       };
       const fallbackReservedUntil = seatCode === activeReservedSeatCode ? holdExpiresAt : "";
-      const isHeldByCurrentTraveler =
-        seatState.status === "reserved" &&
-        ((Boolean(seatState.reservedByCurrentTraveler) && hasFutureHold(seatState.reservedUntil)) ||
-          (seatCode === activeReservedSeatCode && hasFutureHold(fallbackReservedUntil)));
-      const isReservedByOther = seatState.status === "reserved" && !isHeldByCurrentTraveler;
+      const hasOptimisticCurrentTravelerHold =
+        seatCode === activeReservedSeatCode && hasFutureHold(fallbackReservedUntil);
       const isBooked = seatState.status === "booked";
+      const isHeldByCurrentTraveler =
+        hasOptimisticCurrentTravelerHold ||
+        (
+          seatState.status === "reserved" &&
+          Boolean(seatState.reservedByCurrentTraveler) &&
+          hasFutureHold(seatState.reservedUntil)
+        );
+      const normalizedStatus = isBooked
+        ? "booked"
+        : (seatState.status === "reserved" || hasOptimisticCurrentTravelerHold)
+          ? "reserved"
+          : "available";
+      const isReservedByOther = normalizedStatus === "reserved" && !isHeldByCurrentTraveler;
       const seatFee = getSeatFee(rowNumber, seatCode);
       const isWindow = column === "A" || column === "F";
       const isAisle = column === "C" || column === "D";
 
       return {
         seatCode,
-        status: seatState.status || "available",
+        status: normalizedStatus,
         isOccupied: isBooked,
         isBooked,
         isReservedByOther,
@@ -228,9 +237,10 @@ const SeatSelection = () => {
   const travelerLabel = user?.name || formatTravelerSummary(searchState?.travelers || {});
   const backPath = searchState ? buildSearchPath(searchState) : "/flights";
   const hasActiveReservation = Boolean(draftState?.reservationBookingId && hasFutureHold(draftState?.holdExpiresAt));
+  const isHoldExpired = Boolean(draftState?.reservationBookingId) && !hasFutureHold(draftState?.holdExpiresAt);
   const holdTone = !draftState?.reservationBookingId
     ? "active"
-    : holdSeconds === 0
+    : isHoldExpired
       ? "expired"
       : holdSeconds <= 90
         ? "warning"
@@ -474,7 +484,7 @@ const SeatSelection = () => {
   ]);
 
   useEffect(() => {
-    if (!draftState?.reservationBookingId || holdSeconds !== 0) {
+    if (!draftState?.reservationBookingId || !isHoldExpired) {
       return undefined;
     }
 
@@ -509,7 +519,7 @@ const SeatSelection = () => {
     return () => {
       isActive = false;
     };
-  }, [draftState?.holdExpiresAt, draftState?.reservationBookingId, holdSeconds]);
+  }, [draftState?.holdExpiresAt, draftState?.reservationBookingId, isHoldExpired]);
 
   useEffect(() => {
     if (!hasLoadedSeatMap || !selectedFlight || !searchState || !selectedSeatCode || !selectedSeat || !hasActiveReservation) {
@@ -573,15 +583,32 @@ const SeatSelection = () => {
         savedAt: new Date().toISOString(),
       });
       clearCheckoutDraft();
-      setSeatStatusByCode((current) => ({
-        ...current,
-        [seatCode]: {
-          status: "reserved",
-          isOccupied: false,
-          reservedUntil: payload.booking.holdExpiresAt,
-          reservedByCurrentTraveler: true,
-        },
-      }));
+      setSeatStatusByCode((current) => {
+        const nextSeatStatusByCode = Object.fromEntries(
+          Object.entries(current).map(([currentSeatCode, currentSeatState]) => [
+            currentSeatCode,
+            currentSeatState?.reservedByCurrentTraveler && currentSeatCode !== seatCode
+              ? {
+                  ...currentSeatState,
+                  status: "available",
+                  isOccupied: false,
+                  reservedUntil: null,
+                  reservedByCurrentTraveler: false,
+                }
+              : currentSeatState,
+          ])
+        );
+
+        return {
+          ...nextSeatStatusByCode,
+          [seatCode]: {
+            status: "reserved",
+            isOccupied: false,
+            reservedUntil: payload.booking.holdExpiresAt,
+            reservedByCurrentTraveler: true,
+          },
+        };
+      });
       setSeatMapRequestKey((current) => current + 1);
     } catch (error) {
       setSeatNotice(error.message || "We could not reserve that seat right now.");
@@ -675,27 +702,19 @@ const SeatSelection = () => {
     : "No seat selected";
   const seatDescriptor = selectedSeat ? `${selectedSeat.seatType} | ${seatPosition}` : "Pick a seat to continue";
   const seatPriceLabel = seatFee === 0 ? "Complimentary" : formatCurrency(seatFee);
-  const isHoldExpired = Boolean(draftState?.reservationBookingId) && holdSeconds === 0;
 
   return (
     <main className="seat-selection-page">
-      <header className="seat-selection-page__header">
-        <div className="seat-selection-page__shell seat-selection-page__header-inner">
-          <div className="seat-selection-page__header-brand-group">
-            <button type="button" className="seat-selection-page__back" onClick={() => navigate(backPath)}>
-              <ArrowBackRoundedIcon fontSize="small" />
-              <span>Back to results</span>
-            </button>
-            <a className="seat-selection-page__brand" href="/">
-              Flyvora
-            </a>
-          </div>
+      <BookingHeader
+        backLabel="Back to results"
+        onBack={() => navigate(backPath)}
+        rightContent={
           <div className={`seat-selection-page__hold seat-selection-page__hold--${holdTone}`}>
             <TimerOutlinedIcon fontSize="small" />
             <span>{hasActiveReservation ? formatHoldTime(holdSeconds) : "Pick a seat"}</span>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       <section className="seat-selection-page__hero">
         <div className="seat-selection-page__shell seat-selection-page__hero-layout">
@@ -976,4 +995,11 @@ const SeatSelection = () => {
 };
 
 export default SeatSelection;
+
+
+
+
+
+
+
 

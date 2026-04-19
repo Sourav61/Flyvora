@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import ArrowBackRoundedIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardRoundedIcon from "@mui/icons-material/ArrowForwardRounded";
 import ExpandMoreRoundedIcon from "@mui/icons-material/ExpandMoreRounded";
 import VerifiedUserRoundedIcon from "@mui/icons-material/VerifiedUserRounded";
@@ -24,6 +23,8 @@ import {
 import { clearCheckoutDraft, readCheckoutDraft, saveCheckoutDraft } from "../../search/checkoutStorage";
 import { readTravelerProfile, saveTravelerProfile } from "../../search/travelerProfileStorage";
 import { downloadBookingPdf, viewBookingPdf } from "../../bookings/bookingPdf";
+import { BookingHeader } from "../../components/layout/Header";
+import { buildApiUrl, readApiPayload } from "../../../shared/api";
 import "../home/home.scss";
 import "./checkout.scss";
 
@@ -33,7 +34,6 @@ const dateFormatter = new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: 
 const shortDateFormatter = new Intl.DateTimeFormat("en-IN", { day: "2-digit", month: "short" });
 const DODO_RETURN_STORAGE_KEY = "flyvora-dodo-return";
 
-const getApiBaseUrl = () => (process.env.REACT_APP_API_BASE_URL || "http://localhost:5000").replace(/\/$/, "");
 const buildSeatMapPath = (flightId, traveler = {}) => {
   const params = new URLSearchParams();
 
@@ -97,7 +97,7 @@ const stripCheckoutQueryParams = () => {
 const postJson = async (path, payload) => {
   let response;
   try {
-    response = await fetch(`${getApiBaseUrl()}${path}`, {
+    response = await fetch(buildApiUrl(path), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -105,18 +105,18 @@ const postJson = async (path, payload) => {
   } catch (error) {
     throw new Error("Flyvora could not reach the booking server. Start the backend with npm run server and try again.");
   }
-  const data = await response.json().catch(() => ({}));
+  const data = await readApiPayload(response, "We could not complete checkout right now.");
   if (!response.ok) throw new Error(data.message || "We could not complete checkout right now.");
   return data;
 };
 const getJson = async (path) => {
   let response;
   try {
-    response = await fetch(`${getApiBaseUrl()}${path}`);
+    response = await fetch(buildApiUrl(path));
   } catch (error) {
     throw new Error("Flyvora could not reach the booking server. Start the backend with npm run server and try again.");
   }
-  const data = await response.json().catch(() => ({}));
+  const data = await readApiPayload(response, "We could not refresh your live reservation right now.");
   if (!response.ok) throw new Error(data.message || "We could not refresh your live reservation right now.");
   return data;
 };
@@ -336,8 +336,8 @@ const Checkout = () => {
   const seatFee = Number(selectedSeat?.seatFee || 0);
   const grandTotal = Number(selectedFlight?.totalFare || 0) + seatFee;
   const hasActiveReservation = Boolean(draftState?.reservationBookingId && hasFutureHold(draftState?.holdExpiresAt));
-  const holdTone = !draftState?.reservationBookingId ? "expired" : holdSeconds === 0 ? "expired" : holdSeconds <= 120 ? "warning" : "active";
-  const isHoldExpired = Boolean(draftState?.reservationBookingId) && holdSeconds === 0;
+  const isHoldExpired = Boolean(draftState?.reservationBookingId) && !hasFutureHold(draftState?.holdExpiresAt);
+  const holdTone = !draftState?.reservationBookingId ? "expired" : isHoldExpired ? "expired" : holdSeconds <= 120 ? "warning" : "active";
   const seatDescriptor = selectedSeat ? `${selectedSeat.seatType} | ${getSeatPosition(selectedSeatCode)}` : "Choose a seat";
   const displayName = user?.name || contactDetails.name || "Traveler";
   const displayInitials = displayName.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase();
@@ -554,15 +554,15 @@ const Checkout = () => {
         </div>
       ) : null}
 
-      <header className="checkout-page__header">
-        <div className="checkout-page__shell checkout-page__header-inner">
-          <div className="checkout-page__header-start">
-            <button type="button" className="checkout-page__back" onClick={handleBackToSeatSelection}><ArrowBackRoundedIcon fontSize="small" /><span>Back to seats</span></button>
-            <a className="checkout-page__brand" href="/">Flyvora</a>
+      <BookingHeader
+        backLabel="Back to seats"
+        onBack={handleBackToSeatSelection}
+        rightContent={
+          <div className="checkout-page__avatar-shell">
+            {user?.picture ? <img src={user.picture} alt={displayName} /> : displayInitials}
           </div>
-          <div className="checkout-page__avatar-shell">{user?.picture ? <img src={user.picture} alt={displayName} /> : displayInitials}</div>
-        </div>
-      </header>
+        }
+      />
 
       <section className="checkout-page__hero">
         <div className="checkout-page__shell">
@@ -645,6 +645,12 @@ const Checkout = () => {
 };
 
 export default Checkout;
+
+
+
+
+
+
 
 
 

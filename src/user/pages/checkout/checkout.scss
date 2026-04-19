@@ -2,6 +2,7 @@
 @use "../../../styles/globals" as *;
 
 .checkout-page {
+  --booking-header-shell-max: 1240px;
   min-height: 100vh;
   padding-bottom: 8.5rem;
   background:
@@ -20,17 +21,6 @@
     margin: 0 auto;
   }
 
-  &__header {
-    position: sticky;
-    top: 0;
-    z-index: 40;
-    background: rgba(#eceef1, 0.92);
-    backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba($color-border, 0.28);
-  }
-
-  &__header-inner,
-  &__header-start,
   &__hold-banner,
   &__journey-line,
   &__summary-head,
@@ -44,44 +34,18 @@
     gap: 1rem;
   }
 
-  &__header-inner {
-    justify-content: space-between;
-    padding: 0.95rem 0;
-  }
-
-  &__header-start {
-    gap: 0.9rem;
-  }
-
-  &__back {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    border: 0;
-    background: none;
-    color: $color-text;
-    cursor: pointer;
-    font-weight: 700;
-  }
-
-  &__brand {
-    color: $color-primary;
-    text-decoration: none;
-    font: 800 1.6rem "Manrope", sans-serif;
-    letter-spacing: -0.05em;
-  }
-
   &__avatar-shell {
-    width: 2.9rem;
-    height: 2.9rem;
+    width: 3rem;
+    height: 3rem;
     display: grid;
     place-items: center;
     overflow: hidden;
-    border-radius: 0.95rem;
-    background: rgba($color-primary, 0.08);
+    border: 1px solid rgba($color-primary, 0.12);
+    border-radius: 1rem;
+    background: linear-gradient(135deg, rgba($color-primary, 0.14), rgba(#ffffff, 0.9));
     color: $color-primary;
     font: 800 0.95rem "Manrope", sans-serif;
-    box-shadow: 0 16px 28px rgba(25, 28, 30, 0.08);
+    box-shadow: 0 16px 28px rgba($color-primary, 0.12);
 
     img {
       width: 100%;
@@ -910,18 +874,6 @@
 
 @media (max-width: 620px) {
   .checkout-page {
-    &__header-inner {
-      padding: 0.85rem 0;
-    }
-
-    &__back span {
-      display: none;
-    }
-
-    &__brand {
-      font-size: 1.45rem;
-    }
-
     &__avatar-shell {
       width: 2.6rem;
       height: 2.6rem;

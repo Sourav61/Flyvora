@@ -1,4 +1,42 @@
 const { Pool } = require("pg");
+const { comparePassword, hashPassword } = require("../utils/password");
+
+const DEFAULT_ADMIN_SEED_EMAIL = "souravpahwa9@gmail.com";
+const DEFAULT_ADMIN_SEED_PASSWORD = "flyvora-admin";
+
+const normalizeEmail = (value = "") => String(value).trim().toLowerCase();
+const normalizeText = (value = "") => String(value).trim();
+
+const getDatabaseConfigSummary = () => {
+  if (process.env.DATABASE_URL) {
+    try {
+      const connectionUrl = new URL(process.env.DATABASE_URL);
+      return {
+        source: "DATABASE_URL",
+        host: connectionUrl.hostname || "unknown-host",
+        port: connectionUrl.port || "5432",
+        database: connectionUrl.pathname.replace(/^\//, "") || "unknown-db",
+        ssl: process.env.PGSSLMODE === "require" ? "require" : "disable",
+      };
+    } catch (error) {
+      return {
+        source: "DATABASE_URL",
+        host: "invalid-url",
+        port: "unknown-port",
+        database: "unknown-db",
+        ssl: process.env.PGSSLMODE === "require" ? "require" : "disable",
+      };
+    }
+  }
+
+  return {
+    source: "DB_*",
+    host: normalizeText(process.env.DB_HOST || "localhost"),
+    port: normalizeText(process.env.DB_PORT || "5432"),
+    database: normalizeText(process.env.DB_NAME || "travel_pro"),
+    ssl: "disable",
+  };
+};
 
 const getPoolConfig = () => {
   if (process.env.DATABASE_URL) {
@@ -19,6 +57,61 @@ const getPoolConfig = () => {
 
 const pool = new Pool(getPoolConfig());
 
+pool.on("error", (error) => {
+  console.error("Unexpected PostgreSQL pool error:", error.message);
+});
+
+const ensureSeedAdminUser = async () => {
+  const adminEmail = normalizeEmail(process.env.ADMIN_SEED_EMAIL || DEFAULT_ADMIN_SEED_EMAIL);
+  const adminPassword = String(process.env.ADMIN_SEED_PASSWORD || DEFAULT_ADMIN_SEED_PASSWORD);
+
+  if (!adminEmail || !adminPassword) {
+    return;
+  }
+
+  const existingAdminResult = await pool.query(
+    `
+      SELECT id, password_hash
+      FROM admin_users
+      WHERE email = $1
+    `,
+    [adminEmail]
+  );
+
+  const existingAdmin = existingAdminResult.rows[0];
+
+  if (!existingAdmin) {
+    const passwordHash = await hashPassword(adminPassword);
+
+    await pool.query(
+      `
+        INSERT INTO admin_users (email, password_hash)
+        VALUES ($1, $2)
+      `,
+      [adminEmail, passwordHash]
+    );
+
+    return;
+  }
+
+  const isPasswordCurrent = await comparePassword(adminPassword, existingAdmin.password_hash);
+
+  if (isPasswordCurrent) {
+    return;
+  }
+
+  const passwordHash = await hashPassword(adminPassword);
+
+  await pool.query(
+    `
+      UPDATE admin_users
+      SET password_hash = $2, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1
+    `,
+    [existingAdmin.id, passwordHash]
+  );
+};
+
 const initializeDatabase = async () => {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -27,6 +120,16 @@ const initializeDatabase = async () => {
       email VARCHAR(255) UNIQUE NOT NULL,
       password_hash TEXT NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS admin_users (
+      id SERIAL PRIMARY KEY,
+      email VARCHAR(255) UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
 
@@ -119,6 +222,11 @@ const initializeDatabase = async () => {
   `);
 
   await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS admin_users_email_unique_idx
+    ON admin_users (email)
+  `);
+
+  await pool.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS bookings_booking_reference_unique_idx
     ON bookings (booking_reference)
   `);
@@ -138,9 +246,12 @@ const initializeDatabase = async () => {
     CREATE INDEX IF NOT EXISTS bookings_traveler_email_idx
     ON bookings (traveler_email)
   `);
+
+  await ensureSeedAdminUser();
 };
 
 module.exports = {
+  getDatabaseConfigSummary,
   pool,
   initializeDatabase,
 };

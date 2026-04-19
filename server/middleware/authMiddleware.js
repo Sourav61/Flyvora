@@ -24,6 +24,18 @@ const authenticateToken = (req, res, next) => {
   }
 };
 
+const authenticateAdminToken = (req, res, next) =>
+  authenticateToken(req, res, () => {
+    const userRole = String(req.user?.role || "").trim().toLowerCase();
+
+    if (userRole !== "admin") {
+      return res.status(403).json({ message: "Admin access is required" });
+    }
+
+    return next();
+  });
+
 module.exports = {
   authenticateToken,
+  authenticateAdminToken,
 };

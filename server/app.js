@@ -1,21 +1,23 @@
 const express = require("express");
 const authRoutes = require("./routes/authRoutes");
-const adminRoutes = require("./routes/adminRoutes");
+const adminAuthRoutes = require("./routes/adminAuthRoutes");
 const flightRoutes = require("./routes/flightRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const bookingRoutes = require("./routes/bookingRoutes");
+const contactRoutes = require("./routes/contactRoutes");
 const { notFoundHandler, errorHandler } = require("./middleware/errorHandler");
 const cors = require("cors");
 
 const app = express();
+const normalizeOrigin = (origin = "") => String(origin).trim().replace(/\/$/, "");
 const configuredOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:5001,http://localhost:3000,http://localhost:3001")
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => normalizeOrigin(origin))
   .filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || configuredOrigins.includes(origin)) {
+    if (!origin || configuredOrigins.includes(normalizeOrigin(origin))) {
       callback(null, true);
       return;
     }
@@ -32,10 +34,11 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/admin", adminRoutes);
+app.use("/api/admin-auth", adminAuthRoutes);
 app.use("/api/flights", flightRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/contact", contactRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 

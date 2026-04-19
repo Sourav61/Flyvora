@@ -21,6 +21,7 @@
     "jsonwebtoken": "^9.0.3",
     "jspdf": "^4.2.1",
     "mdb-react-ui-kit": "^6.1.0",
+    "nodemailer": "^8.0.5",
     "pg": "^8.20.0",
     "razorpay": "^2.9.6",
     "react": "^18.2.0",
@@ -36,7 +37,10 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "generate:runtime-config": "node scripts/generateRuntimeConfig.js",
+    "prestart": "npm run generate:runtime-config",
     "start": "react-scripts start",
+    "prebuild": "npm run generate:runtime-config",
     "server": "node server/server.js",
     "server:dev": "node --watch server/server.js",
     "server:test-auth": "node server/scripts/testAuthFlow.js",

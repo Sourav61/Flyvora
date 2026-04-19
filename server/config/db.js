@@ -5,6 +5,38 @@ const DEFAULT_ADMIN_SEED_EMAIL = "souravpahwa9@gmail.com";
 const DEFAULT_ADMIN_SEED_PASSWORD = "flyvora-admin";
 
 const normalizeEmail = (value = "") => String(value).trim().toLowerCase();
+const normalizeText = (value = "") => String(value).trim();
+
+const getDatabaseConfigSummary = () => {
+  if (process.env.DATABASE_URL) {
+    try {
+      const connectionUrl = new URL(process.env.DATABASE_URL);
+      return {
+        source: "DATABASE_URL",
+        host: connectionUrl.hostname || "unknown-host",
+        port: connectionUrl.port || "5432",
+        database: connectionUrl.pathname.replace(/^\//, "") || "unknown-db",
+        ssl: process.env.PGSSLMODE === "require" ? "require" : "disable",
+      };
+    } catch (error) {
+      return {
+        source: "DATABASE_URL",
+        host: "invalid-url",
+        port: "unknown-port",
+        database: "unknown-db",
+        ssl: process.env.PGSSLMODE === "require" ? "require" : "disable",
+      };
+    }
+  }
+
+  return {
+    source: "DB_*",
+    host: normalizeText(process.env.DB_HOST || "localhost"),
+    port: normalizeText(process.env.DB_PORT || "5432"),
+    database: normalizeText(process.env.DB_NAME || "travel_pro"),
+    ssl: "disable",
+  };
+};
 
 const getPoolConfig = () => {
   if (process.env.DATABASE_URL) {
@@ -24,6 +56,10 @@ const getPoolConfig = () => {
 };
 
 const pool = new Pool(getPoolConfig());
+
+pool.on("error", (error) => {
+  console.error("Unexpected PostgreSQL pool error:", error.message);
+});
 
 const ensureSeedAdminUser = async () => {
   const adminEmail = normalizeEmail(process.env.ADMIN_SEED_EMAIL || DEFAULT_ADMIN_SEED_EMAIL);
@@ -215,6 +251,7 @@ const initializeDatabase = async () => {
 };
 
 module.exports = {
+  getDatabaseConfigSummary,
   pool,
   initializeDatabase,
 };

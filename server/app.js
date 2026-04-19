@@ -9,14 +9,15 @@ const { notFoundHandler, errorHandler } = require("./middleware/errorHandler");
 const cors = require("cors");
 
 const app = express();
+const normalizeOrigin = (origin = "") => String(origin).trim().replace(/\/$/, "");
 const configuredOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:5001,http://localhost:3000,http://localhost:3001")
   .split(",")
-  .map((origin) => origin.trim())
+  .map((origin) => normalizeOrigin(origin))
   .filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || configuredOrigins.includes(origin)) {
+    if (!origin || configuredOrigins.includes(normalizeOrigin(origin))) {
       callback(null, true);
       return;
     }

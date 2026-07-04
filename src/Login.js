@@ -1,11 +1,12 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import "./styles/auth.scss";
 
 function Login() {
   const { loginWithRedirect, isLoading, isAuthenticated, error } = useAuth0();
   const location = useLocation();
+  const navigate = useNavigate();
   const returnTo = location.state?.returnTo || "/";
 
   useEffect(() => {
@@ -14,7 +15,7 @@ function Login() {
     }
 
     if (isAuthenticated) {
-      window.location.replace(returnTo);
+      navigate(returnTo, { replace: true });
       return;
     }
 
@@ -25,7 +26,7 @@ function Login() {
         prompt: "login",
       },
     });
-  }, [isAuthenticated, isLoading, loginWithRedirect, returnTo]);
+  }, [isAuthenticated, isLoading, loginWithRedirect, navigate, returnTo]);
 
   return (
     <div className="auth-layout">

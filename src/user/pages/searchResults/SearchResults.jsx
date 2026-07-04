@@ -507,14 +507,7 @@ const SearchResults = () => {
     };
 
     saveSeatSelectionDraft(seatSelectionPayload);
-
-    if (isAuthenticated) {
-      console.log('check seat selection payload', seatSelectionPayload);
-      navigate(`/flights/${selectedFlight.id}`, { state: seatSelectionPayload });
-      return;
-    }
-
-    startGoogleLogin(`/flights/${selectedFlight.id}`);
+    navigate(`/flights/${selectedFlight.id}`, { state: seatSelectionPayload });
   };
   const clearClientFilters = () => {
     setSelectedStops([]);

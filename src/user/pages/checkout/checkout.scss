@@ -286,6 +286,52 @@
     text-align: right;
   }
 
+  &__leg-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding-top: 1.2rem;
+  }
+
+  &__leg-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(8rem, 0.8fr) minmax(6rem, 0.6fr);
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid rgba($color-border, 0.22);
+    border-radius: 1rem;
+    background: linear-gradient(180deg, rgba(#edf2f9, 0.82), rgba(#ffffff, 0.94));
+
+    span,
+    strong,
+    p {
+      display: block;
+      margin: 0;
+    }
+
+    span {
+      color: $color-text-subtle;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    strong {
+      margin-top: 0.24rem;
+      color: $color-text;
+      font: 800 1rem "Manrope", sans-serif;
+    }
+
+    p {
+      margin-top: 0.28rem;
+      color: $color-text-muted;
+      line-height: 1.5;
+      font-size: 0.88rem;
+    }
+  }
+
   &__journey-meta-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -573,6 +619,40 @@
     align-items: center;
   }
 
+  &__summary-leg-list {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+
+    > div {
+      padding: 0.8rem;
+      border-radius: 0.9rem;
+      background: rgba($color-surface, 0.72);
+    }
+
+    span,
+    strong {
+      display: block;
+      margin: 0;
+    }
+
+    span {
+      color: $color-text-subtle;
+      font-size: 0.66rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    strong {
+      margin-top: 0.24rem;
+      color: $color-text;
+      font: 800 0.9rem "Manrope", sans-serif;
+      line-height: 1.45;
+    }
+  }
+
   &__summary-line-items,
   &__summary-route {
     margin-top: 1.15rem;
@@ -832,6 +912,11 @@
     &__journey-timeline {
       grid-template-columns: 1fr;
       text-align: left;
+    }
+
+    &__leg-card {
+      grid-template-columns: 1fr;
+      gap: 0.8rem;
     }
 
     &__journey-arrival {

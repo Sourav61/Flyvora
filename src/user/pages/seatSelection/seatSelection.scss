@@ -70,6 +70,71 @@
     gap: 1.35rem;
   }
 
+  &__leg-switcher {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+  }
+
+  &__leg-tab {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    min-height: 74px;
+    padding: 0.9rem 1rem;
+    border: 1px solid rgba($color-border, 0.26);
+    border-radius: 1rem;
+    background: rgba($color-surface-raised, 0.95);
+    color: $color-text;
+    cursor: pointer;
+    text-align: left;
+    box-shadow: 0 18px 36px rgba(25, 28, 30, 0.05);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      border-color: rgba($color-primary, 0.28);
+      box-shadow: 0 22px 42px rgba($color-primary, 0.08);
+    }
+
+    &.is-active {
+      border-color: rgba($color-primary, 0.42);
+      box-shadow: 0 24px 48px rgba($color-primary, 0.12);
+    }
+
+    &.is-complete {
+      background: linear-gradient(180deg, rgba(#eafbf6, 0.95), rgba($color-surface-raised, 0.95));
+    }
+
+    span,
+    strong,
+    small {
+      display: block;
+      margin: 0;
+    }
+
+    span {
+      color: $color-primary;
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    strong {
+      margin-top: 0.28rem;
+      font: 800 0.95rem "Manrope", sans-serif;
+      color: $color-text;
+    }
+
+    small {
+      color: $color-text-muted;
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+  }
+
   &__intro,
   &__summary-card,
   &__empty-card,
@@ -481,6 +546,60 @@
     text-transform: uppercase;
   }
 
+  &__leg-summary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba($color-border, 0.2);
+  }
+
+  &__leg-summary-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid rgba($color-border, 0.22);
+    border-radius: 0.9rem;
+    background: rgba($color-surface, 0.72);
+    color: $color-text;
+    cursor: pointer;
+    text-align: left;
+
+    &.is-active {
+      border-color: rgba($color-primary, 0.36);
+      background: rgba($color-primary, 0.08);
+    }
+
+    span,
+    strong,
+    small {
+      display: block;
+      margin: 0;
+    }
+
+    span {
+      color: $color-text-subtle;
+      font-size: 0.66rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    strong {
+      margin-top: 0.2rem;
+      color: $color-text;
+      font: 800 0.88rem "Manrope", sans-serif;
+    }
+
+    small {
+      color: $color-primary;
+      font-weight: 800;
+    }
+  }
+
   &__summary-lines,
   &__summary-meta {
     display: flex;
@@ -597,6 +716,17 @@
 
     &__hero-layout {
       gap: 1rem;
+    }
+
+    &__leg-switcher {
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+    }
+
+    &__leg-tab {
+      min-height: 66px;
+      padding: 0.8rem;
+      border-radius: 0.95rem;
     }
 
     &__summary-column {

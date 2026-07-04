@@ -235,14 +235,19 @@ const SearchResults = () => {
   const [fetchStatus, setFetchStatus] = useState("idle");
   const [fetchError, setFetchError] = useState("");
   const [flightRows, setFlightRows] = useState([]);
+  const [returnFlightRows, setReturnFlightRows] = useState([]);
   const [totalFlights, setTotalFlights] = useState(0);
+  const [totalReturnFlights, setTotalReturnFlights] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
   const [selectedStops, setSelectedStops] = useState([]);
   const [selectedAirlines, setSelectedAirlines] = useState([]);
   const [priceLimit, setPriceLimit] = useState(0);
   const [selectedFlightId, setSelectedFlightId] = useState(null);
+  const [selectedReturnFlightId, setSelectedReturnFlightId] = useState(null);
   const [expandedFlightId, setExpandedFlightId] = useState(null);
+  const [expandedReturnFlightId, setExpandedReturnFlightId] = useState(null);
   const [isSelectionConfirmed, setIsSelectionConfirmed] = useState(false);
+  const isRoundTrip = appliedSearch.tripType === "round-trip";
 
   const startGoogleLogin = (returnTo = "/bookings") => {
     loginWithRedirect({
@@ -290,40 +295,55 @@ const SearchResults = () => {
       setFetchStatus("idle");
       setFetchError("");
       setFlightRows([]);
+      setReturnFlightRows([]);
       setTotalFlights(0);
+      setTotalReturnFlights(0);
       return undefined;
     }
 
     const controller = new AbortController();
-    const query = new URLSearchParams({
+    const outboundQuery = new URLSearchParams({
       source: appliedSearch.source,
       destination: appliedSearch.destination,
       date: appliedSearch.departureDate,
       page: "1",
       limit: "20",
     });
+    const returnQuery = new URLSearchParams({
+      source: appliedSearch.destination,
+      destination: appliedSearch.source,
+      date: appliedSearch.returnDate,
+      page: "1",
+      limit: "20",
+    });
+    const fetchFlightLeg = async (query) => {
+      const response = await fetch(buildApiUrl(`/api/flights/search?${query.toString()}`), { signal: controller.signal });
+      const payload = await readApiPayload(response, "We could not load flights right now.");
+
+      if (!response.ok) {
+        throw new Error(payload.message || "We could not load flights right now.");
+      }
+
+      return payload;
+    };
 
     setFetchStatus("loading");
     setFetchError("");
 
-    fetch(buildApiUrl(`/api/flights/search?${query.toString()}`), { signal: controller.signal })
-      .then(async (response) => {
-        const payload = await readApiPayload(response, "We could not load flights right now.");
-
-        if (!response.ok) {
-          throw new Error(payload.message || "We could not load flights right now.");
-        }
-
-        return payload;
-      })
-      .then((payload) => {
+    Promise.all([
+      fetchFlightLeg(outboundQuery),
+      isRoundTrip ? fetchFlightLeg(returnQuery) : Promise.resolve({ flights: [], pagination: { total: 0 } }),
+    ])
+      .then(([outboundPayload, returnPayload]) => {
         if (controller.signal.aborted) {
           return;
         }
 
         startTransition(() => {
-          setFlightRows(payload.flights || []);
-          setTotalFlights(payload.pagination?.total || payload.flights?.length || 0);
+          setFlightRows(outboundPayload.flights || []);
+          setReturnFlightRows(returnPayload.flights || []);
+          setTotalFlights(outboundPayload.pagination?.total || outboundPayload.flights?.length || 0);
+          setTotalReturnFlights(returnPayload.pagination?.total || returnPayload.flights?.length || 0);
           setFetchStatus("success");
         });
       })
@@ -335,32 +355,56 @@ const SearchResults = () => {
         setFetchStatus("error");
         setFetchError(error.message || "We could not load flights right now.");
         setFlightRows([]);
+        setReturnFlightRows([]);
         setTotalFlights(0);
+        setTotalReturnFlights(0);
       });
 
     return () => controller.abort();
   }, [
     appliedSearch.departureDate,
     appliedSearch.destination,
+    appliedSearch.returnDate,
     appliedSearch.source,
+    appliedSearch.tripType,
     appliedValidationErrors,
+    isRoundTrip,
     retryCount,
   ]);
 
   const enrichedFlights = useMemo(() => enrichFlights(flightRows, appliedSearch), [appliedSearch, flightRows]);
+  const returnSearch = useMemo(
+    () => ({
+      ...appliedSearch,
+      source: appliedSearch.destination,
+      destination: appliedSearch.source,
+      departureDate: appliedSearch.returnDate,
+    }),
+    [appliedSearch]
+  );
+  const enrichedReturnFlights = useMemo(
+    () => enrichFlights(returnFlightRows, returnSearch),
+    [returnFlightRows, returnSearch]
+  );
   const sortedFlights = useMemo(() => sortFlights(enrichedFlights, appliedSearch.sortBy), [appliedSearch.sortBy, enrichedFlights]);
+  const sortedReturnFlights = useMemo(
+    () => sortFlights(enrichedReturnFlights, appliedSearch.sortBy),
+    [appliedSearch.sortBy, enrichedReturnFlights]
+  );
   const availableAirlines = useMemo(
-    () => Array.from(new Set(enrichedFlights.map((flight) => flight.airline))).sort(),
-    [enrichedFlights]
+    () => Array.from(new Set([...enrichedFlights, ...enrichedReturnFlights].map((flight) => flight.airline))).sort(),
+    [enrichedFlights, enrichedReturnFlights]
   );
   const priceBounds = useMemo(() => {
-    if (!enrichedFlights.length) {
+    const allFlights = [...enrichedFlights, ...enrichedReturnFlights];
+
+    if (!allFlights.length) {
       return { min: 0, max: 0 };
     }
 
-    const prices = enrichedFlights.map((flight) => flight.price);
+    const prices = allFlights.map((flight) => flight.price);
     return { min: Math.min(...prices), max: Math.max(...prices) };
-  }, [enrichedFlights]);
+  }, [enrichedFlights, enrichedReturnFlights]);
 
   useEffect(() => {
     if (!availableAirlines.length) {
@@ -390,6 +434,16 @@ const SearchResults = () => {
       }),
     [availableAirlines, priceLimit, selectedAirlines, selectedStops, sortedFlights]
   );
+  const filteredReturnFlights = useMemo(
+    () =>
+      sortedReturnFlights.filter((flight) => {
+        const matchesStops = selectedStops.length === 0 || selectedStops.includes(flight.stopKey);
+        const matchesAirlines = availableAirlines.length === 0 || selectedAirlines.includes(flight.airline);
+        const matchesPrice = !priceLimit || flight.price <= priceLimit;
+        return matchesStops && matchesAirlines && matchesPrice;
+      }),
+    [availableAirlines, priceLimit, selectedAirlines, selectedStops, sortedReturnFlights]
+  );
 
   useEffect(() => {
     if (!filteredFlights.length) {
@@ -402,11 +456,27 @@ const SearchResults = () => {
     setSelectedFlightId((current) => (current && filteredFlights.some((flight) => flight.id === current) ? current : filteredFlights[0].id));
     setExpandedFlightId((current) => (current && filteredFlights.some((flight) => flight.id === current) ? current : filteredFlights[0].id));
   }, [filteredFlights]);
+  useEffect(() => {
+    if (!isRoundTrip || !filteredReturnFlights.length) {
+      setSelectedReturnFlightId(null);
+      setExpandedReturnFlightId(null);
+      setIsSelectionConfirmed(false);
+      return;
+    }
+
+    setSelectedReturnFlightId((current) => (current && filteredReturnFlights.some((flight) => flight.id === current) ? current : filteredReturnFlights[0].id));
+    setExpandedReturnFlightId((current) => (current && filteredReturnFlights.some((flight) => flight.id === current) ? current : filteredReturnFlights[0].id));
+  }, [filteredReturnFlights, isRoundTrip]);
 
   const selectedFlight = useMemo(
     () => filteredFlights.find((flight) => flight.id === selectedFlightId) || null,
     [filteredFlights, selectedFlightId]
   );
+  const selectedReturnFlight = useMemo(
+    () => filteredReturnFlights.find((flight) => flight.id === selectedReturnFlightId) || null,
+    [filteredReturnFlights, selectedReturnFlightId]
+  );
+  const selectedItineraryTotal = Number(selectedFlight?.totalFare || 0) + Number(isRoundTrip ? selectedReturnFlight?.totalFare || 0 : 0);
 
   const routeTitle = `${appliedSearch.source || "Choose"} to ${appliedSearch.destination || "a destination"}`;
   const hasAirlineFilter = availableAirlines.length > 0 && selectedAirlines.length !== availableAirlines.length;
@@ -495,14 +565,19 @@ const SearchResults = () => {
     );
 
   const handleConfirmSelection = () => {
-    if (!selectedFlight) {
+    if (!selectedFlight || (isRoundTrip && !selectedReturnFlight)) {
       return;
     }
 
     const seatSelectionPayload = {
       flightId: selectedFlight.id,
       selectedFlight,
+      selectedFlights: {
+        outbound: selectedFlight,
+        return: isRoundTrip ? selectedReturnFlight : null,
+      },
       searchState: appliedSearch,
+      activeSeatLeg: "outbound",
       savedAt: new Date().toISOString(),
     };
 
@@ -593,6 +668,113 @@ const SearchResults = () => {
         ))}
       </div>
     </>
+  );
+
+  const renderFlightCards = ({
+    flights,
+    selectedId,
+    expandedId,
+    travelDate,
+    onSelect,
+    onToggle,
+  }) => (
+    <div className="search-results-page__flight-list">
+      {flights.map((flight) => {
+        const isSelected = selectedId === flight.id;
+        const isExpanded = expandedId === flight.id;
+
+        return (
+          <article className={`search-results-page__flight-card ${isSelected ? "is-selected" : ""} ${isSelectionConfirmed && isSelected ? "is-confirmed" : ""}`} key={flight.id}>
+            {flight.badge ? (
+              <div className={`search-results-page__flight-badge search-results-page__flight-badge--${flight.badge.tone}`}>
+                {flight.badge.label}
+              </div>
+            ) : null}
+
+            <div className="search-results-page__flight-top">
+              <div className="search-results-page__airline">
+                <span className={`search-results-page__airline-mark search-results-page__airline-mark--${flight.airlineTone}`}>
+                  <FlightTakeoffRoundedIcon fontSize="small" />
+                </span>
+                <div>
+                  <h3>{flight.airline}</h3>
+                  <p>{flight.flightNumber} - {flight.aircraft}</p>
+                </div>
+              </div>
+              <div className="search-results-page__price">
+                <strong>{formatCurrency(flight.price)}</strong>
+                <span>per traveler</span>
+              </div>
+            </div>
+
+            <div className="search-results-page__timeline">
+              <div className="search-results-page__time-block">
+                <strong>{flight.departureLabel}</strong>
+                <span>{flight.airportFrom}</span>
+              </div>
+              <div className="search-results-page__timeline-line">
+                <span>{flight.durationLabel} - {flight.stopCopy}</span>
+                <div />
+              </div>
+              <div className="search-results-page__time-block search-results-page__time-block--right">
+                <strong>{flight.arrivalLabel}</strong>
+                <span>{flight.airportTo}</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="search-results-page__flight-mobile-link"
+              onClick={() => onToggle(flight.id)}
+            >
+              {isExpanded ? "Hide details" : "View details"}
+            </button>
+
+            <div className="search-results-page__flight-footer">
+              <div className="search-results-page__flight-mobile-price">
+                <span>Total Price</span>
+                <strong>{formatCurrency(flight.totalFare)}</strong>
+              </div>
+              <div className="search-results-page__amenities">
+                <span>
+                  <LuggageRoundedIcon fontSize="inherit" /> 1 Checked
+                </span>
+                <span>
+                  <WifiRoundedIcon fontSize="inherit" /> Wi-Fi
+                </span>
+                <span>
+                  <RestaurantRoundedIcon fontSize="inherit" /> Meals
+                </span>
+              </div>
+              <div className="search-results-page__flight-actions">
+                <button
+                  type="button"
+                  className="search-results-page__link-button"
+                  onClick={() => onToggle(flight.id)}
+                >
+                  {isExpanded ? "Hide Details" : "View Details"}
+                </button>
+                <button
+                  type="button"
+                  className={`button ${isSelected ? "button--secondary" : "button--primary"}`}
+                  onClick={() => onSelect(flight.id)}
+                >
+                  {isSelected ? "Selected" : "Select"}
+                </button>
+              </div>
+            </div>
+            {isExpanded ? (
+              <div className="search-results-page__flight-details">
+                <div><span>Travel day</span><strong>{formatDateValue(travelDate)}</strong></div>
+                <div><span>Fare class</span><strong>{appliedSearch.travelers.cabinClass}</strong></div>
+                <div><span>Flight type</span><strong>{flight.stopCopy}</strong></div>
+                <div><span>Total with taxes</span><strong>{formatCurrency(flight.totalFare)}</strong></div>
+              </div>
+            ) : null}
+          </article>
+        );
+      })}
+    </div>
   );
 
   return (
@@ -718,10 +900,10 @@ const SearchResults = () => {
               </div>
             </div>
 
-                        {isSelectionConfirmed && selectedFlight ? (
+                        {isSelectionConfirmed && selectedFlight && (!isRoundTrip || selectedReturnFlight) ? (
               <div className="search-results-page__status-banner">
                 <CheckCircleRoundedIcon fontSize="small" />
-                <span>{selectedFlight.airline} is confirmed for review. Seat selection comes next.</span>
+                <span>{isRoundTrip ? "Round trip flights are confirmed for review. Seat selection comes next." : `${selectedFlight.airline} is confirmed for review. Seat selection comes next.`}</span>
               </div>
             ) : null}
 
@@ -790,110 +972,58 @@ const SearchResults = () => {
 
             {fetchStatus === "success" && filteredFlights.length > 0 ? (
               <>
-                <div className="search-results-page__flight-list">
-                  {filteredFlights.map((flight) => {
-                    const isSelected = selectedFlightId === flight.id;
-                    const isExpanded = expandedFlightId === flight.id;
-
-                    return (
-                      <article className={`search-results-page__flight-card ${isSelected ? "is-selected" : ""} ${isSelectionConfirmed && isSelected ? "is-confirmed" : ""}`} key={flight.id}>
-                        {flight.badge ? (
-                          <div className={`search-results-page__flight-badge search-results-page__flight-badge--${flight.badge.tone}`}>
-                            {flight.badge.label}
-                          </div>
-                        ) : null}
-
-                        <div className="search-results-page__flight-top">
-                          <div className="search-results-page__airline">
-                            <span className={`search-results-page__airline-mark search-results-page__airline-mark--${flight.airlineTone}`}>
-                              <FlightTakeoffRoundedIcon fontSize="small" />
-                            </span>
-                            <div>
-                              <h3>{flight.airline}</h3>
-                              <p>{flight.flightNumber} - {flight.aircraft}</p>
-                            </div>
-                          </div>
-                          <div className="search-results-page__price">
-                            <strong>{formatCurrency(flight.price)}</strong>
-                            <span>per traveler</span>
-                          </div>
-                        </div>
-
-                        <div className="search-results-page__timeline">
-                          <div className="search-results-page__time-block">
-                            <strong>{flight.departureLabel}</strong>
-                            <span>{flight.airportFrom}</span>
-                          </div>
-                          <div className="search-results-page__timeline-line">
-                            <span>{flight.durationLabel} - {flight.stopCopy}</span>
-                            <div />
-                          </div>
-                          <div className="search-results-page__time-block search-results-page__time-block--right">
-                            <strong>{flight.arrivalLabel}</strong>
-                            <span>{flight.airportTo}</span>
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          className="search-results-page__flight-mobile-link"
-                          onClick={() => setExpandedFlightId((current) => (current === flight.id ? null : flight.id))}
-                        >
-                          {isExpanded ? "Hide details" : "View details"}
-                        </button>
-
-                        <div className="search-results-page__flight-footer">
-                          <div className="search-results-page__flight-mobile-price">
-                            <span>Total Price</span>
-                            <strong>{formatCurrency(flight.totalFare)}</strong>
-                          </div>
-                          <div className="search-results-page__amenities">
-                            <span>
-                              <LuggageRoundedIcon fontSize="inherit" /> 1 Checked
-                            </span>
-                            <span>
-                              <WifiRoundedIcon fontSize="inherit" /> Wi-Fi
-                            </span>
-                            <span>
-                              <RestaurantRoundedIcon fontSize="inherit" /> Meals
-                            </span>
-                          </div>
-                          <div className="search-results-page__flight-actions">
-                            <button
-                              type="button"
-                              className="search-results-page__link-button"
-                              onClick={() => setExpandedFlightId((current) => (current === flight.id ? null : flight.id))}
-                            >
-                              {isExpanded ? "Hide Details" : "View Details"}
-                            </button>
-                            <button
-                              type="button"
-                              className={`button ${isSelected ? "button--secondary" : "button--primary"}`}
-                              onClick={() => {
-                                setSelectedFlightId(flight.id);
-                                setExpandedFlightId(flight.id);
-                                setIsSelectionConfirmed(false);
-                              }}
-                            >
-                              {isSelected ? "Selected" : "Select"}
-                            </button>
-                          </div>
-                        </div>
-                        {isExpanded ? (
-                          <div className="search-results-page__flight-details">
-                            <div><span>Travel day</span><strong>{formatDateValue(appliedSearch.departureDate)}</strong></div>
-                            <div><span>Fare class</span><strong>{appliedSearch.travelers.cabinClass}</strong></div>
-                            <div><span>Flight type</span><strong>{flight.stopCopy}</strong></div>
-                            <div><span>Total with taxes</span><strong>{formatCurrency(flight.totalFare)}</strong></div>
-                          </div>
-                        ) : null}
-                      </article>
-                    );
+                <div className="search-results-page__leg-section">
+                  <div className="search-results-page__leg-heading">
+                    <span>Outbound</span>
+                    <strong>{appliedSearch.source} to {appliedSearch.destination}</strong>
+                  </div>
+                  {renderFlightCards({
+                    flights: filteredFlights,
+                    selectedId: selectedFlightId,
+                    expandedId: expandedFlightId,
+                    travelDate: appliedSearch.departureDate,
+                    onSelect: (flightId) => {
+                      setSelectedFlightId(flightId);
+                      setExpandedFlightId(flightId);
+                      setIsSelectionConfirmed(false);
+                    },
+                    onToggle: (flightId) => setExpandedFlightId((current) => (current === flightId ? null : flightId)),
                   })}
                 </div>
 
+                {isRoundTrip ? (
+                  <div className="search-results-page__leg-section">
+                    <div className="search-results-page__leg-heading">
+                      <span>Return</span>
+                      <strong>{appliedSearch.destination} to {appliedSearch.source}</strong>
+                    </div>
+
+                    {filteredReturnFlights.length > 0 ? renderFlightCards({
+                      flights: filteredReturnFlights,
+                      selectedId: selectedReturnFlightId,
+                      expandedId: expandedReturnFlightId,
+                      travelDate: appliedSearch.returnDate,
+                      onSelect: (flightId) => {
+                        setSelectedReturnFlightId(flightId);
+                        setExpandedReturnFlightId(flightId);
+                        setIsSelectionConfirmed(false);
+                      },
+                      onToggle: (flightId) => setExpandedReturnFlightId((current) => (current === flightId ? null : flightId)),
+                    }) : (
+                      <article className="search-results-page__empty-state">
+                        <AutoAwesomeRoundedIcon fontSize="small" />
+                        <h3>No return flights matched this date.</h3>
+                        <p>Try moving the return date or searching a nearby route.</p>
+                      </article>
+                    )}
+                  </div>
+                ) : null}
+
                 <div className="search-results-page__results-foot">
-                  <p>Showing {filteredFlights.length} of {totalFlights || enrichedFlights.length} live options</p>
+                  <p>
+                    Showing {filteredFlights.length} of {totalFlights || enrichedFlights.length} outbound options
+                    {isRoundTrip ? ` and ${filteredReturnFlights.length} of ${totalReturnFlights || enrichedReturnFlights.length} return options` : ""}
+                  </p>
                   <div className="search-results-page__results-progress">
                     <div style={{ width: `${Math.min(100, ((filteredFlights.length || 0) / Math.max(totalFlights || 1, 1)) * 100)}%` }} />
                   </div>
@@ -930,10 +1060,12 @@ const SearchResults = () => {
                     <div className="search-results-page__summary-leg">
                       <FlightLandRoundedIcon fontSize="small" />
                       <div>
-                        <strong>{appliedSearch.tripType === "round-trip" ? "Return flight" : "Journey status"}</strong>
+                        <strong>{isRoundTrip && selectedReturnFlight ? `${selectedReturnFlight.airportFrom} to ${selectedReturnFlight.airportTo}` : isRoundTrip ? "Return flight" : "Journey status"}</strong>
                         <span>
-                          {appliedSearch.tripType === "round-trip"
-                            ? "Pick the return leg after reviewing this outbound."
+                          {isRoundTrip && selectedReturnFlight
+                            ? `${formatDateValue(appliedSearch.returnDate)} - ${selectedReturnFlight.departureLabel}`
+                            : isRoundTrip
+                              ? "Pick a return leg to complete this round trip."
                             : "One-way itinerary ready for the next step."}
                         </span>
                       </div>
@@ -941,13 +1073,23 @@ const SearchResults = () => {
                   </div>
 
                   <div className="search-results-page__summary-pricing">
-                    <div><span>Base fare</span><strong>{formatCurrency(selectedFlight.baseFareTotal)}</strong></div>
-                    <div><span>Taxes and fees</span><strong>{formatCurrency(selectedFlight.taxesAndFees)}</strong></div>
-                    <div className="search-results-page__summary-total"><span>Total</span><strong>{formatCurrency(selectedFlight.totalFare)}</strong></div>
+                    {isRoundTrip ? (
+                      <>
+                        <div><span>Outbound total</span><strong>{formatCurrency(selectedFlight.totalFare)}</strong></div>
+                        <div><span>Return total</span><strong>{formatCurrency(selectedReturnFlight?.totalFare || 0)}</strong></div>
+                        <div className="search-results-page__summary-total"><span>Trip total</span><strong>{formatCurrency(selectedItineraryTotal)}</strong></div>
+                      </>
+                    ) : (
+                      <>
+                        <div><span>Base fare</span><strong>{formatCurrency(selectedFlight.baseFareTotal)}</strong></div>
+                        <div><span>Taxes and fees</span><strong>{formatCurrency(selectedFlight.taxesAndFees)}</strong></div>
+                        <div className="search-results-page__summary-total"><span>Total</span><strong>{formatCurrency(selectedFlight.totalFare)}</strong></div>
+                      </>
+                    )}
                   </div>
 
-                  <button type="button" className="button button--primary search-results-page__summary-button" onClick={handleConfirmSelection}>
-                    {isSelectionConfirmed ? "Selection Confirmed" : "Confirm Selection"}
+                  <button type="button" className="button button--primary search-results-page__summary-button" disabled={isRoundTrip && !selectedReturnFlight} onClick={handleConfirmSelection}>
+                    {isRoundTrip && !selectedReturnFlight ? "Select Return Flight" : isSelectionConfirmed ? "Selection Confirmed" : "Confirm Selection"}
                   </button>
 
                   <p className="search-results-page__summary-note">
@@ -964,7 +1106,7 @@ const SearchResults = () => {
             <div className="search-results-page__promo-card">
               <VerifiedRoundedIcon fontSize="small" />
               <div>
-                <strong>{selectedFlight ? `Earn ${selectedFlight.points.toLocaleString("en-IN")} Voyager points` : "Concierge-ready search"}</strong>
+                <strong>{selectedFlight ? `Earn ${(Number(selectedFlight.points || 0) + Number(selectedReturnFlight?.points || 0)).toLocaleString("en-IN")} Voyager points` : "Concierge-ready search"}</strong>
                 <span>{selectedFlight ? "Points apply when this itinerary is completed." : "The shortlist stays clear, calm, and easy to compare."}</span>
               </div>
             </div>
@@ -995,14 +1137,16 @@ const SearchResults = () => {
         </div>
       </aside>
 
-      {fetchStatus === "success" && filteredFlights.length > 0 && selectedFlight && !isFilterSheetOpen ? (
+      {fetchStatus === "success" && filteredFlights.length > 0 && selectedFlight && (!isRoundTrip || selectedReturnFlight) && !isFilterSheetOpen ? (
         <div className="search-results-page__mobile-selection-dock">
           <div className="home-page__shell search-results-page__mobile-selection-inner">
             <div className="search-results-page__mobile-selection-copy">
-              <span>Selected flight</span>
-              <strong>{selectedFlight.airline} | {formatCurrency(selectedFlight.totalFare)}</strong>
+              <span>{isRoundTrip ? "Selected round trip" : "Selected flight"}</span>
+              <strong>{selectedFlight.airline} | {formatCurrency(selectedItineraryTotal || selectedFlight.totalFare)}</strong>
               <p>
-                {selectedFlight.departureLabel} to {selectedFlight.arrivalLabel} | {selectedFlight.stopCopy}
+                {isRoundTrip
+                  ? `${selectedFlight.departureLabel} outbound, ${selectedReturnFlight.departureLabel} return`
+                  : `${selectedFlight.departureLabel} to ${selectedFlight.arrivalLabel} | ${selectedFlight.stopCopy}`}
               </p>
             </div>
             <button

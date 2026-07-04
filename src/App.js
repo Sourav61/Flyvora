@@ -42,7 +42,13 @@ function ProtectedRoute({ children }) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ returnTo: location.pathname }} />;
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{ returnTo: `${location?.pathname}${location?.search}${location?.hash}` }}
+      />
+    );
   }
 
   return children;
@@ -96,12 +102,26 @@ function App() {
               }
             />
             <Route path="/flights" element={<SearchResults />} />
-            <Route path="/flights/:flightId" element={<SeatSelection />} />
-          <Route path="/checkout/:flightId" element={<Checkout />} />
-          <Route path="/journeys/:journeySlug" element={<FeaturedJourney />} />
-          <Route path="/contact" element={<ContactUs />} />
-          <Route path="/terms" element={<Terms />} />
-          <Route path="/privacy" element={<Privacy />} />
+            <Route
+              path="/flights/:flightId"
+              element={
+                <ProtectedRoute>
+                  <SeatSelection />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/checkout/:flightId"
+              element={
+                <ProtectedRoute>
+                  <Checkout />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/journeys/:journeySlug" element={<FeaturedJourney />} />
+            <Route path="/contact" element={<ContactUs />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route
               path="/admin"
@@ -175,6 +195,5 @@ function App() {
 }
 
 export default App;
-
 
 

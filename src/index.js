@@ -1,18 +1,20 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, useNavigate } from "react-router-dom";
 import { Auth0Provider } from "@auth0/auth0-react";
 import App from "./App";
 import "./styles/globals.scss";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 
-const onRedirectCallback = (appState) => {
-  window.history.replaceState({}, document.title, appState?.returnTo || window.location.pathname);
-};
+function Auth0ProviderWithNavigate({ children }) {
+  const navigate = useNavigate();
 
-root.render(
-  <BrowserRouter>
+  const onRedirectCallback = (appState) => {
+    navigate(appState?.returnTo || window.location.pathname, { replace: true });
+  };
+
+  return (
     <Auth0Provider
       domain={process.env.REACT_APP_AUTH0_DOMAIN}
       clientId={process.env.REACT_APP_AUTH0_CLIENT_ID}
@@ -23,7 +25,15 @@ root.render(
       cacheLocation="localstorage"
       useRefreshTokens
     >
-      <App />
+      {children}
     </Auth0Provider>
+  );
+}
+
+root.render(
+  <BrowserRouter>
+    <Auth0ProviderWithNavigate>
+      <App />
+    </Auth0ProviderWithNavigate>
   </BrowserRouter>
 );

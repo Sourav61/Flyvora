@@ -2,6 +2,10 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## Demo Video
+
+Watch a walkthrough of the main website features here: [Travel Pro demo on Loom](https://www.loom.com/share/c36ed632838546eaa30f844b3d8b8318).
+
 ## Available Scripts
 
 In the project directory, you can run:

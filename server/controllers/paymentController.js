@@ -154,9 +154,8 @@ const markBookingFailed = async ({
   paymentMethod = null,
   paymentStatus = "failed",
   notes = null,
+  keepReservationActive = false,
 }) => {
-  const nextBookingStatus = paymentStatus === "cancelled" ? "cancelled" : "payment_failed";
-
   await updatePaymentState({
     client,
     bookingId,
@@ -165,6 +164,22 @@ const markBookingFailed = async ({
     paymentMethod,
     notes,
   });
+
+  if (keepReservationActive) {
+    await client.query(
+      `
+        UPDATE bookings
+        SET status = 'reserved',
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1
+      `,
+      [bookingId]
+    );
+
+    return;
+  }
+
+  const nextBookingStatus = paymentStatus === "cancelled" ? "cancelled" : "payment_failed";
 
   await client.query(
     `
@@ -456,14 +471,19 @@ const createDodoPaymentSession = async (req, res, next) => {
       return res.status(403).json({ message: "This seat reservation belongs to another user." });
     }
 
-    if (!["reserved", "payment_pending"].includes(booking.status)) {
+    const isActiveCheckoutReservation = ["reserved", "payment_pending"].includes(booking.status);
+    const isRetryableFailedReservation =
+      booking.status === "payment_failed" && DODO_FAILURE_STATUSES.has(booking.payment_status || "");
+
+    if (!isActiveCheckoutReservation && !isRetryableFailedReservation) {
       await dbClient.query("ROLLBACK");
       return res.status(409).json({ message: "This reservation can no longer be used for checkout." });
     }
 
     const holdExpiresAt = resolveHoldExpiresAt(booking);
+    const now = Date.now();
 
-    if (holdExpiresAt.getTime() <= Date.now()) {
+    if (holdExpiresAt.getTime() <= now) {
       await dbClient.query("ROLLBACK");
       return res.status(409).json({ message: "Your 5-minute seat hold expired. Please choose a seat again." });
     }
@@ -488,10 +508,31 @@ const createDodoPaymentSession = async (req, res, next) => {
 
     const seatReservedUntil = seatRecord.reserved_until ? new Date(seatRecord.reserved_until) : null;
 
-    if (
+    if (isRetryableFailedReservation) {
+      const seatIsHeldByAnotherReservation = Boolean(
+        seatRecord.status === "reserved" &&
+        seatReservedUntil &&
+        seatReservedUntil.getTime() > now
+      );
+
+      if (seatRecord.status === "booked" || seatIsHeldByAnotherReservation) {
+        await dbClient.query("ROLLBACK");
+        return res.status(409).json({ message: "That seat is no longer available. Please choose another seat." });
+      }
+
+      await dbClient.query(
+        `
+          UPDATE seats
+          SET status = 'reserved',
+              reserved_until = $2
+          WHERE id = $1
+        `,
+        [booking.seat_id, holdExpiresAt]
+      );
+    } else if (
       seatRecord.status !== "reserved" ||
       !seatReservedUntil ||
-      seatReservedUntil.getTime() <= Date.now()
+      seatReservedUntil.getTime() <= now
     ) {
       await dbClient.query("ROLLBACK");
       return res.status(409).json({ message: "That seat is no longer reserved for you. Please choose a seat again." });
@@ -534,6 +575,7 @@ const createDodoPaymentSession = async (req, res, next) => {
             traveler_email = $4,
             traveler_phone = $5,
             provider_user_id = COALESCE($6, provider_user_id),
+            hold_expires_at = COALESCE(hold_expires_at, $7),
             updated_at = CURRENT_TIMESTAMP
         WHERE id = $1
       `,
@@ -544,6 +586,7 @@ const createDodoPaymentSession = async (req, res, next) => {
         normalizedEmail,
         normalizedPhone,
         providerUserId || null,
+        holdExpiresAt,
       ]
     );
 
@@ -839,6 +882,15 @@ const verifyDodoPayment = async (req, res, next) => {
     }
 
     if (DODO_FAILURE_STATUSES.has(paymentStatus)) {
+      const holdExpiresAt = resolveHoldExpiresAt(booking);
+      const seatReservedUntil = booking.seat_reserved_until ? new Date(booking.seat_reserved_until) : null;
+      const canRetryWithinHold = Boolean(
+        holdExpiresAt.getTime() > Date.now() &&
+        booking.seat_status === "reserved" &&
+        seatReservedUntil &&
+        seatReservedUntil.getTime() > Date.now()
+      );
+
       await markBookingFailed({
         client: dbClient,
         bookingId,
@@ -846,6 +898,7 @@ const verifyDodoPayment = async (req, res, next) => {
         paymentId: resolvedPaymentId,
         paymentStatus,
         notes: verificationNotes,
+        keepReservationActive: canRetryWithinHold,
       });
       await dbClient.query("COMMIT");
       return res.status(400).json({
@@ -853,6 +906,14 @@ const verifyDodoPayment = async (req, res, next) => {
           paymentStatus === "cancelled"
             ? "Payment was cancelled before completion."
             : "Payment did not complete successfully. Please try again.",
+        booking: canRetryWithinHold
+          ? {
+              id: booking.id,
+              bookingReference: booking.booking_reference,
+              holdExpiresAt,
+              status: "reserved",
+            }
+          : null,
       });
     }
 

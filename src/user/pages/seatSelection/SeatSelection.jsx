@@ -141,6 +141,18 @@ const hasFutureHold = (holdExpiresAt) => {
   return new Date(holdExpiresAt).getTime() > Date.now();
 };
 
+const LEG_LABELS = {
+  outbound: "Outbound",
+  return: "Return",
+};
+
+const buildLegacySelection = (draftState) => ({
+  selectedSeatCode: draftState?.selectedSeatCode || "",
+  selectedSeat: draftState?.selectedSeat || null,
+  reservationBookingId: draftState?.reservationBookingId || null,
+  holdExpiresAt: draftState?.holdExpiresAt || null,
+});
+
 const buildSeatMap = (seatStatusByCode = {}, activeReservedSeatCode = "", holdExpiresAt = "") =>
   CABIN_ROWS.map((rowNumber) => ({
     rowNumber,
@@ -221,24 +233,55 @@ const SeatSelection = () => {
     return null;
   }, [flightId, location.state]);
   const [draftState, setDraftState] = useState(initialDraft);
-  const selectedFlight = draftState?.selectedFlight || null;
   const searchState = draftState?.searchState || null;
-  const selectedSeatCode = draftState?.selectedSeatCode || "";
-  const activeReservedSeatCode = hasFutureHold(draftState?.holdExpiresAt) ? selectedSeatCode : "";
+  const selectedFlights = useMemo(
+    () => ({
+      outbound: draftState?.selectedFlights?.outbound || draftState?.selectedFlight || null,
+      return: draftState?.selectedFlights?.return || null,
+    }),
+    [draftState?.selectedFlight, draftState?.selectedFlights]
+  );
+  const isRoundTrip = Boolean(searchState?.tripType === "round-trip" && selectedFlights.return);
+  const activeSeatLeg = isRoundTrip ? draftState?.activeSeatLeg || "outbound" : "outbound";
+  const selectedFlight = selectedFlights[activeSeatLeg] || selectedFlights.outbound;
+  const legSelections = useMemo(
+    () => ({
+      outbound: {
+        ...buildLegacySelection(draftState),
+        ...(draftState?.seatSelections?.outbound || {}),
+      },
+      return: {
+        ...(draftState?.seatSelections?.return || {}),
+      },
+    }),
+    [draftState]
+  );
+  const activeLegSelection = legSelections[activeSeatLeg] || {};
+  const selectedSeatCode = activeLegSelection.selectedSeatCode || "";
+  const activeReservedSeatCode = hasFutureHold(activeLegSelection.holdExpiresAt) ? selectedSeatCode : "";
   const seatMap = useMemo(
-    () => buildSeatMap(seatStatusByCode, activeReservedSeatCode, draftState?.holdExpiresAt || ""),
-    [activeReservedSeatCode, draftState?.holdExpiresAt, seatStatusByCode]
+    () => buildSeatMap(seatStatusByCode, activeReservedSeatCode, activeLegSelection.holdExpiresAt || ""),
+    [activeLegSelection.holdExpiresAt, activeReservedSeatCode, seatStatusByCode]
   );
   const allSeats = useMemo(() => seatMap.flatMap((row) => row.seats), [seatMap]);
   const selectedSeat = useMemo(
-    () => allSeats.find((seat) => seat.seatCode === selectedSeatCode) || null,
-    [allSeats, selectedSeatCode]
+    () => activeLegSelection.selectedSeat || allSeats.find((seat) => seat.seatCode === selectedSeatCode) || null,
+    [activeLegSelection.selectedSeat, allSeats, selectedSeatCode]
   );
   const travelerLabel = user?.name || formatTravelerSummary(searchState?.travelers || {});
   const backPath = searchState ? buildSearchPath(searchState) : "/flights";
-  const hasActiveReservation = Boolean(draftState?.reservationBookingId && hasFutureHold(draftState?.holdExpiresAt));
-  const isHoldExpired = Boolean(draftState?.reservationBookingId) && !hasFutureHold(draftState?.holdExpiresAt);
-  const holdTone = !draftState?.reservationBookingId
+  const requiredLegKeys = isRoundTrip ? ["outbound", "return"] : ["outbound"];
+  const hasActiveReservation = Boolean(activeLegSelection.reservationBookingId && hasFutureHold(activeLegSelection.holdExpiresAt));
+  const isHoldExpired = Boolean(activeLegSelection.reservationBookingId) && !hasFutureHold(activeLegSelection.holdExpiresAt);
+  const allRequiredLegsReserved = requiredLegKeys.every((legKey) => {
+    const selection = legSelections[legKey] || {};
+    return Boolean(selection.reservationBookingId && hasFutureHold(selection.holdExpiresAt));
+  });
+  const anyRequiredLegExpired = requiredLegKeys.some((legKey) => {
+    const selection = legSelections[legKey] || {};
+    return Boolean(selection.reservationBookingId && !hasFutureHold(selection.holdExpiresAt));
+  });
+  const holdTone = !activeLegSelection.reservationBookingId
     ? "active"
     : isHoldExpired
       ? "expired"
@@ -249,6 +292,15 @@ const SeatSelection = () => {
   useEffect(() => {
     setDraftState(initialDraft);
   }, [initialDraft]);
+
+  useEffect(() => {
+    setHasLoadedSeatMap(false);
+    setSeatStatusByCode({});
+    setLiveActiveReservation(null);
+    setPendingReservationId(null);
+    setSeatMapError("");
+    setSeatNotice("");
+  }, [activeSeatLeg, selectedFlight?.id]);
 
   useEffect(() => {
     if (isLoading || isAuthenticated) {
@@ -304,18 +356,45 @@ const SeatSelection = () => {
         if (payload.activeReservation) {
           setDraftState((current) => {
             const baseDraft = current || {
-              flightId: selectedFlight.id,
-              selectedFlight,
+              flightId: selectedFlights.outbound?.id || selectedFlight.id,
+              selectedFlight: selectedFlights.outbound || selectedFlight,
+              selectedFlights,
               searchState,
             };
+            const currentLegSelections = {
+              outbound: {
+                ...buildLegacySelection(baseDraft),
+                ...(baseDraft.seatSelections?.outbound || {}),
+              },
+              return: {
+                ...(baseDraft.seatSelections?.return || {}),
+              },
+            };
+            const nextLegSelections = {
+              ...currentLegSelections,
+              [activeSeatLeg]: {
+                ...currentLegSelections[activeSeatLeg],
+                selectedSeatCode: payload.activeReservation.seatCode,
+                reservationBookingId: payload.activeReservation.bookingId,
+                holdExpiresAt: payload.activeReservation.holdExpiresAt,
+              },
+            };
+            const legacyPatch = activeSeatLeg === "outbound"
+              ? {
+                  selectedSeatCode: payload.activeReservation.seatCode,
+                  reservationBookingId: payload.activeReservation.bookingId,
+                  holdExpiresAt: payload.activeReservation.holdExpiresAt,
+                }
+              : {};
             const nextDraft = {
               ...baseDraft,
-              flightId: selectedFlight.id,
-              selectedFlight,
+              ...legacyPatch,
+              flightId: selectedFlights.outbound?.id || selectedFlight.id,
+              selectedFlight: selectedFlights.outbound || selectedFlight,
+              selectedFlights,
               searchState,
-              selectedSeatCode: payload.activeReservation.seatCode,
-              reservationBookingId: payload.activeReservation.bookingId,
-              holdExpiresAt: payload.activeReservation.holdExpiresAt,
+              activeSeatLeg,
+              seatSelections: nextLegSelections,
               savedAt: new Date().toISOString(),
             };
 
@@ -343,7 +422,7 @@ const SeatSelection = () => {
     return () => {
       isActive = false;
     };
-  }, [isAuthenticated, isLoading, searchState, selectedFlight, seatMapRequestKey, user?.email, user?.sub]);
+  }, [activeSeatLeg, isAuthenticated, isLoading, searchState, selectedFlight, selectedFlights, seatMapRequestKey, user?.email, user?.sub]);
 
   useEffect(() => {
     if (!selectedFlight || isLoading || !isAuthenticated || (!user?.sub && !user?.email)) {
@@ -358,14 +437,14 @@ const SeatSelection = () => {
   }, [isAuthenticated, isLoading, selectedFlight, user?.email, user?.sub]);
 
   useEffect(() => {
-    if (!draftState?.holdExpiresAt) {
+    if (!activeLegSelection.holdExpiresAt) {
       setHoldSeconds(0);
       return undefined;
     }
 
     const updateHoldTimer = () => {
       const nextHoldSeconds = Math.max(
-        Math.ceil((new Date(draftState.holdExpiresAt).getTime() - Date.now()) / 1000),
+        Math.ceil((new Date(activeLegSelection.holdExpiresAt).getTime() - Date.now()) / 1000),
         0
       );
       setHoldSeconds(nextHoldSeconds);
@@ -374,30 +453,62 @@ const SeatSelection = () => {
     updateHoldTimer();
     const intervalId = window.setInterval(updateHoldTimer, 1000);
     return () => window.clearInterval(intervalId);
-  }, [draftState?.holdExpiresAt]);
+  }, [activeLegSelection.holdExpiresAt]);
 
-  const syncDraftState = useCallback((patch) => {
+  const syncLegSelection = useCallback((legKey, patch) => {
     setDraftState((current) => {
       if (!current && !selectedFlight) {
         return current;
       }
 
       const baseDraft = current || {
-        flightId: selectedFlight?.id,
-        selectedFlight,
+        flightId: selectedFlights.outbound?.id || selectedFlight?.id,
+        selectedFlight: selectedFlights.outbound || selectedFlight,
+        selectedFlights,
         searchState,
       };
+      const currentLegSelections = {
+        outbound: {
+          ...buildLegacySelection(baseDraft),
+          ...(baseDraft.seatSelections?.outbound || {}),
+        },
+        return: {
+          ...(baseDraft.seatSelections?.return || {}),
+        },
+      };
+      const nextLegSelections = {
+        ...currentLegSelections,
+        [legKey]: {
+          ...currentLegSelections[legKey],
+          ...patch,
+        },
+      };
+      const legacyPatch = legKey === "outbound"
+        ? {
+            selectedSeatCode: nextLegSelections.outbound.selectedSeatCode || "",
+            selectedSeat: nextLegSelections.outbound.selectedSeat || null,
+            reservationBookingId: nextLegSelections.outbound.reservationBookingId || null,
+            holdExpiresAt: nextLegSelections.outbound.holdExpiresAt || null,
+          }
+        : {};
       const nextDraft = {
         ...baseDraft,
-        ...patch,
+        ...legacyPatch,
+        flightId: selectedFlights.outbound?.id || baseDraft.flightId,
+        selectedFlight: selectedFlights.outbound || baseDraft.selectedFlight,
+        selectedFlights,
+        searchState,
+        activeSeatLeg: legKey,
+        seatSelections: nextLegSelections,
+        savedAt: new Date().toISOString(),
       };
 
       saveSeatSelectionDraft(nextDraft);
       return nextDraft;
     });
-  }, [searchState, selectedFlight]);
+  }, [searchState, selectedFlight, selectedFlights]);
 
-  const clearReservationSelection = ({ message = "", refreshSeatMap = false } = {}) => {
+  const clearReservationSelection = useCallback(({ message = "", refreshSeatMap = false } = {}) => {
     if (message) {
       setSeatNotice(message);
     }
@@ -407,12 +518,37 @@ const SeatSelection = () => {
         return current;
       }
 
+      const currentLegSelections = {
+        outbound: {
+          ...buildLegacySelection(current),
+          ...(current.seatSelections?.outbound || {}),
+        },
+        return: {
+          ...(current.seatSelections?.return || {}),
+        },
+      };
+      const nextLegSelections = {
+        ...currentLegSelections,
+        [activeSeatLeg]: {
+          ...currentLegSelections[activeSeatLeg],
+          selectedSeatCode: "",
+          selectedSeat: null,
+          reservationBookingId: null,
+          holdExpiresAt: null,
+        },
+      };
+      const legacyPatch = activeSeatLeg === "outbound"
+        ? {
+            selectedSeatCode: "",
+            selectedSeat: null,
+            reservationBookingId: null,
+            holdExpiresAt: null,
+          }
+        : {};
       const nextDraft = {
         ...current,
-        selectedSeatCode: "",
-        selectedSeat: null,
-        reservationBookingId: null,
-        holdExpiresAt: null,
+        ...legacyPatch,
+        seatSelections: nextLegSelections,
         savedAt: new Date().toISOString(),
       };
 
@@ -426,40 +562,39 @@ const SeatSelection = () => {
     if (refreshSeatMap) {
       setSeatMapRequestKey((current) => current + 1);
     }
-  };
+  }, [activeSeatLeg]);
 
   useEffect(() => {
-    if (!hasLoadedSeatMap || !draftState?.selectedSeatCode || !draftState?.reservationBookingId || !hasFutureHold(draftState?.holdExpiresAt)) {
+    if (!hasLoadedSeatMap || !selectedSeatCode || !activeLegSelection.reservationBookingId || !hasFutureHold(activeLegSelection.holdExpiresAt)) {
       return;
     }
 
-    const currentSeat = allSeats.find((seat) => seat.seatCode === draftState.selectedSeatCode) || null;
+    const currentSeat = allSeats.find((seat) => seat.seatCode === selectedSeatCode) || null;
 
-    if (pendingReservationId === draftState.reservationBookingId) {
+    if (pendingReservationId === activeLegSelection.reservationBookingId) {
       return;
     }
 
     if (
-      liveActiveReservation?.bookingId === draftState.reservationBookingId &&
-      liveActiveReservation.seatCode === draftState.selectedSeatCode &&
+      liveActiveReservation?.bookingId === activeLegSelection.reservationBookingId &&
+      liveActiveReservation.seatCode === selectedSeatCode &&
       hasFutureHold(liveActiveReservation.holdExpiresAt)
     ) {
       return;
     }
 
-    if (currentSeat?.isHeldByCurrentTraveler && hasFutureHold(currentSeat.reservedUntil || draftState.holdExpiresAt)) {
+    if (currentSeat?.isHeldByCurrentTraveler && hasFutureHold(currentSeat.reservedUntil || activeLegSelection.holdExpiresAt)) {
       return;
     }
 
     if (liveActiveReservation && hasFutureHold(liveActiveReservation.holdExpiresAt)) {
       const liveSeat = allSeats.find((seat) => seat.seatCode === liveActiveReservation.seatCode) || null;
 
-      syncDraftState({
+      syncLegSelection(activeSeatLeg, {
         reservationBookingId: liveActiveReservation.bookingId,
         selectedSeatCode: liveActiveReservation.seatCode,
         selectedSeat: liveSeat,
         holdExpiresAt: liveActiveReservation.holdExpiresAt,
-        savedAt: new Date().toISOString(),
       });
       return;
     }
@@ -469,26 +604,28 @@ const SeatSelection = () => {
     }
 
     clearReservationSelection({
-      message: `Seat ${draftState.selectedSeatCode} is no longer reserved for you. Please choose another seat.`,
+      message: `Seat ${selectedSeatCode} is no longer reserved for you. Please choose another seat.`,
       refreshSeatMap: true,
     });
   }, [
+    activeLegSelection.holdExpiresAt,
+    activeLegSelection.reservationBookingId,
+    activeSeatLeg,
     allSeats,
-    draftState?.holdExpiresAt,
-    draftState?.reservationBookingId,
-    draftState?.selectedSeatCode,
+    clearReservationSelection,
     hasLoadedSeatMap,
     liveActiveReservation,
     pendingReservationId,
-    syncDraftState,
+    selectedSeatCode,
+    syncLegSelection,
   ]);
 
   useEffect(() => {
-    if (!draftState?.reservationBookingId || !isHoldExpired) {
+    if (!activeLegSelection.reservationBookingId || !isHoldExpired) {
       return undefined;
     }
 
-    const expiryKey = `${draftState.reservationBookingId}:${draftState.holdExpiresAt || "expired"}`;
+    const expiryKey = `${activeLegSelection.reservationBookingId}:${activeLegSelection.holdExpiresAt || "expired"}`;
 
     if (expiryCancelKeyRef.current === expiryKey) {
       return undefined;
@@ -499,7 +636,7 @@ const SeatSelection = () => {
 
     const releaseExpiredReservation = async () => {
       try {
-        await postJson("/api/bookings/cancel", { bookingId: draftState.reservationBookingId });
+        await postJson("/api/bookings/cancel", { bookingId: activeLegSelection.reservationBookingId });
       } catch (error) {
         // no-op: the cleanup job also clears expired holds
       }
@@ -519,23 +656,72 @@ const SeatSelection = () => {
     return () => {
       isActive = false;
     };
-  }, [draftState?.holdExpiresAt, draftState?.reservationBookingId, isHoldExpired]);
+  }, [activeLegSelection.holdExpiresAt, activeLegSelection.reservationBookingId, clearReservationSelection, isHoldExpired]);
 
   useEffect(() => {
     if (!hasLoadedSeatMap || !selectedFlight || !searchState || !selectedSeatCode || !selectedSeat || !hasActiveReservation) {
       return;
     }
 
+    const nextLegSelections = {
+      ...legSelections,
+      [activeSeatLeg]: {
+        ...legSelections[activeSeatLeg],
+        selectedSeatCode,
+        selectedSeat,
+        reservationBookingId: activeLegSelection.reservationBookingId,
+        holdExpiresAt: activeLegSelection.holdExpiresAt,
+      },
+    };
     saveSeatSelectionDraft({
       ...draftState,
-      flightId: selectedFlight.id,
-      selectedFlight,
+      flightId: selectedFlights.outbound?.id || selectedFlight.id,
+      selectedFlight: selectedFlights.outbound || selectedFlight,
+      selectedFlights,
       searchState,
-      selectedSeatCode,
-      selectedSeat,
+      activeSeatLeg,
+      seatSelections: nextLegSelections,
+      selectedSeatCode: nextLegSelections.outbound.selectedSeatCode || "",
+      selectedSeat: nextLegSelections.outbound.selectedSeat || null,
+      reservationBookingId: nextLegSelections.outbound.reservationBookingId || null,
+      holdExpiresAt: nextLegSelections.outbound.holdExpiresAt || null,
       savedAt: new Date().toISOString(),
     });
-  }, [draftState, hasActiveReservation, hasLoadedSeatMap, searchState, selectedFlight, selectedSeat, selectedSeatCode]);
+  }, [
+    activeLegSelection.holdExpiresAt,
+    activeLegSelection.reservationBookingId,
+    activeSeatLeg,
+    draftState,
+    hasActiveReservation,
+    hasLoadedSeatMap,
+    legSelections,
+    searchState,
+    selectedFlight,
+    selectedFlights,
+    selectedSeat,
+    selectedSeatCode,
+  ]);
+
+  const handleLegChange = (legKey) => {
+    if (!isRoundTrip || legKey === activeSeatLeg) {
+      return;
+    }
+
+    setDraftState((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const nextDraft = {
+        ...current,
+        activeSeatLeg: legKey,
+        savedAt: new Date().toISOString(),
+      };
+
+      saveSeatSelectionDraft(nextDraft);
+      return nextDraft;
+    });
+  };
 
   const handleSeatSelect = async (seatCode) => {
     if (!selectedFlight || !searchState || isReservingSeat) {
@@ -574,13 +760,11 @@ const SeatSelection = () => {
       };
 
       setPendingReservationId(payload.booking.id);
-      syncDraftState({
-        flightId: selectedFlight.id,
+      syncLegSelection(activeSeatLeg, {
         selectedSeatCode: seatCode,
         selectedSeat: nextSelectedSeat,
         reservationBookingId: payload.booking.id,
         holdExpiresAt: payload.booking.holdExpiresAt,
-        savedAt: new Date().toISOString(),
       });
       clearCheckoutDraft();
       setSeatStatusByCode((current) => {
@@ -623,26 +807,41 @@ const SeatSelection = () => {
   };
 
   const handleContinueToCheckout = () => {
-    if (!selectedFlight || !selectedSeat || !draftState?.reservationBookingId || !hasActiveReservation) {
+    if (!selectedFlights.outbound || !allRequiredLegsReserved || anyRequiredLegExpired) {
       return;
     }
 
+    const checkoutLegSelections = {
+      outbound: {
+        ...legSelections.outbound,
+        selectedSeat: legSelections.outbound.selectedSeat || (activeSeatLeg === "outbound" ? selectedSeat : null),
+      },
+      return: isRoundTrip
+        ? {
+            ...legSelections.return,
+            selectedSeat: legSelections.return.selectedSeat || (activeSeatLeg === "return" ? selectedSeat : null),
+          }
+        : null,
+    };
     const checkoutPayload = {
       ...draftState,
-      flightId: selectedFlight.id,
-      selectedFlight,
+      flightId: selectedFlights.outbound.id,
+      selectedFlight: selectedFlights.outbound,
+      selectedFlights,
       searchState,
-      selectedSeatCode,
-      selectedSeat,
+      activeSeatLeg,
+      seatSelections: checkoutLegSelections,
+      selectedSeatCode: checkoutLegSelections.outbound.selectedSeatCode,
+      selectedSeat: checkoutLegSelections.outbound.selectedSeat,
       travelerLabel,
-      reservationBookingId: draftState.reservationBookingId,
-      holdExpiresAt: draftState.holdExpiresAt,
+      reservationBookingId: checkoutLegSelections.outbound.reservationBookingId,
+      holdExpiresAt: checkoutLegSelections.outbound.holdExpiresAt,
       savedAt: new Date().toISOString(),
     };
 
     saveSeatSelectionDraft(checkoutPayload);
     saveCheckoutDraft(checkoutPayload);
-    navigate(`/checkout/${selectedFlight.id}`, { state: checkoutPayload });
+    navigate(`/checkout/${selectedFlights.outbound.id}`, { state: checkoutPayload });
   };
 
   if (isLoading) {
@@ -691,8 +890,11 @@ const SeatSelection = () => {
   }
 
   const seatFee = selectedSeat?.seatFee || 0;
-  const grandTotal = Number(selectedFlight.totalFare || 0) + seatFee;
+  const totalSeatFees = requiredLegKeys.reduce((total, legKey) => total + Number(legSelections[legKey]?.selectedSeat?.seatFee || 0), 0);
+  const flightFareTotal = requiredLegKeys.reduce((total, legKey) => total + Number(selectedFlights[legKey]?.totalFare || 0), 0);
+  const grandTotal = flightFareTotal + totalSeatFees;
   const aircraftLabel = selectedFlight.aircraft || "Airbus A320neo";
+  const activeLegLabel = LEG_LABELS[activeSeatLeg] || "Flight";
   const seatPosition = selectedSeat
     ? selectedSeat.isWindow
       ? "Window"
@@ -719,14 +921,41 @@ const SeatSelection = () => {
       <section className="seat-selection-page__hero">
         <div className="seat-selection-page__shell seat-selection-page__hero-layout">
           <div className="seat-selection-page__main-column">
+            {isRoundTrip ? (
+              <div className="seat-selection-page__leg-switcher" role="tablist" aria-label="Round trip seat legs">
+                {requiredLegKeys.map((legKey) => {
+                  const legFlight = selectedFlights[legKey];
+                  const legSelection = legSelections[legKey] || {};
+                  const isActive = activeSeatLeg === legKey;
+                  const hasLegHold = Boolean(legSelection.reservationBookingId && hasFutureHold(legSelection.holdExpiresAt));
+
+                  return (
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      className={`seat-selection-page__leg-tab ${isActive ? "is-active" : ""} ${hasLegHold ? "is-complete" : ""}`}
+                      key={legKey}
+                      onClick={() => handleLegChange(legKey)}
+                    >
+                      <span>{LEG_LABELS[legKey]}</span>
+                      <strong>{legFlight?.airportFrom} to {legFlight?.airportTo}</strong>
+                      <small>{hasLegHold ? `Seat ${legSelection.selectedSeatCode}` : "Pick seat"}</small>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
+
             <section className="seat-selection-page__intro">
               <p className="seat-selection-page__eyebrow seat-selection-page__eyebrow--route">
-                <FlightTakeoffRoundedIcon fontSize="inherit" /> Flight {selectedFlight.flightNumber} | {selectedFlight.airportFrom} to {selectedFlight.airportTo}
+                <FlightTakeoffRoundedIcon fontSize="inherit" /> {activeLegLabel} flight {selectedFlight.flightNumber} | {selectedFlight.airportFrom} to {selectedFlight.airportTo}
               </p>
-              <h1>Select your sanctuary</h1>
+              <h1>{isRoundTrip ? `Select your ${activeLegLabel.toLowerCase()} seat` : "Select your sanctuary"}</h1>
               <p>
-                Click any open seat to lock it for five minutes before checkout. The cabin silhouette keeps the seat position
-                clear, and the hold timer stays tied to the backend reservation.
+                {isRoundTrip
+                  ? "Reserve one seat for each leg before checkout. Each seat hold stays tied to the backend reservation timer."
+                  : "Click any open seat to lock it for five minutes before checkout. The cabin silhouette keeps the seat position clear, and the hold timer stays tied to the backend reservation."}
               </p>
             </section>
 
@@ -739,7 +968,7 @@ const SeatSelection = () => {
                 <span>{aircraftLabel}</span>
               </div>
               <div className="seat-selection-page__flight-meta-status">
-                <span>{hasActiveReservation ? "Seat reserved" : "Tap to reserve"}</span>
+                <span>{hasActiveReservation ? `${activeLegLabel} seat reserved` : "Tap to reserve"}</span>
                 <strong>{selectedSeatCode ? `Selected: ${selectedSeatCode}` : "Pick a seat"}</strong>
               </div>
             </div>
@@ -863,27 +1092,49 @@ const SeatSelection = () => {
             </div>
 
             <div className="seat-selection-page__summary-card">
-              <h2>Selection Summary</h2>
+              <h2>{isRoundTrip ? "Trip Seat Summary" : "Selection Summary"}</h2>
               <div className="seat-selection-page__summary-passenger">
                 <div>
                   <span>Traveler</span>
                   <strong>{travelerLabel}</strong>
                 </div>
-                <div className="seat-selection-page__summary-seat-badge">Seat {selectedSeatCode || "--"}</div>
+                <div className="seat-selection-page__summary-seat-badge">{activeLegLabel} {selectedSeatCode || "--"}</div>
               </div>
+
+              {isRoundTrip ? (
+                <div className="seat-selection-page__leg-summary-list">
+                  {requiredLegKeys.map((legKey) => {
+                    const legFlight = selectedFlights[legKey];
+                    const legSelection = legSelections[legKey] || {};
+
+                    return (
+                      <button
+                        type="button"
+                        className={`seat-selection-page__leg-summary-item ${activeSeatLeg === legKey ? "is-active" : ""}`}
+                        key={legKey}
+                        onClick={() => handleLegChange(legKey)}
+                      >
+                        <span>{LEG_LABELS[legKey]}</span>
+                        <strong>{legSelection.selectedSeatCode || "Seat --"}</strong>
+                        <small>{legFlight?.airportFrom} to {legFlight?.airportTo}</small>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
 
               <div className="seat-selection-page__summary-lines">
                 <div>
-                  <span>Flight fare</span>
-                  <strong>{formatCurrency(selectedFlight.baseFareTotal)}</strong>
+                  <span>{isRoundTrip ? "Flight fares" : "Flight fare"}</span>
+                  <strong>{formatCurrency(isRoundTrip ? flightFareTotal : selectedFlight.baseFareTotal)}</strong>
                 </div>
                 <div>
-                  <span>Taxes and fees</span>
-                  <strong>{formatCurrency(selectedFlight.taxesAndFees)}</strong>
+                  <span>{isRoundTrip ? "Included taxes and service fees" : "Taxes and fees"}</span>
+                  <strong>{formatCurrency(isRoundTrip ? Math.max(flightFareTotal - requiredLegKeys.reduce((total, legKey) => total + Number(selectedFlights[legKey]?.baseFareTotal || 0), 0), 0) : selectedFlight.taxesAndFees)}</strong>
                 </div>
                 <div>
-                  <span>Seat selection</span>
-                  <strong>{seatPriceLabel}</strong>
+                  <span>{isRoundTrip ? "Seat selections" : "Seat selection"}</span>
+                  <strong>{isRoundTrip ? formatCurrency(totalSeatFees) : seatPriceLabel}</strong>
                 </div>
               </div>
 
@@ -908,11 +1159,11 @@ const SeatSelection = () => {
               <button
                 type="button"
                 className="button button--primary seat-selection-page__cta"
-                disabled={isReservingSeat || !selectedSeat || !draftState?.reservationBookingId || isHoldExpired}
+                disabled={isReservingSeat || !allRequiredLegsReserved || anyRequiredLegExpired}
                 onClick={handleContinueToCheckout}
               >
                 <LockRoundedIcon fontSize="small" />
-                <span>{isReservingSeat ? "Reserving seat..." : "Continue to checkout"}</span>
+                <span>{isReservingSeat ? "Reserving seat..." : allRequiredLegsReserved ? "Continue to checkout" : isRoundTrip ? "Reserve both seats" : "Continue to checkout"}</span>
               </button>
 
               <div className="seat-selection-page__secure-note">
@@ -955,7 +1206,7 @@ const SeatSelection = () => {
         <LockRoundedIcon fontSize="inherit" />
         <span>
           {hasActiveReservation
-            ? `Seat reserved for ${formatHoldTime(holdSeconds)}`
+            ? `${activeLegLabel} seat reserved for ${formatHoldTime(holdSeconds)}`
             : "Pick a seat to start the 5-minute hold"}
         </span>
       </div>
@@ -975,10 +1226,10 @@ const SeatSelection = () => {
         <button
           type="button"
           className="button button--primary seat-selection-page__mobile-cta"
-          disabled={isReservingSeat || !selectedSeat || !draftState?.reservationBookingId || isHoldExpired}
+          disabled={isReservingSeat || !allRequiredLegsReserved || anyRequiredLegExpired}
           onClick={handleContinueToCheckout}
         >
-          <span>{isReservingSeat ? "Reserving..." : "Checkout"}</span>
+          <span>{isReservingSeat ? "Reserving..." : allRequiredLegsReserved ? "Checkout" : "Reserve seats"}</span>
           <ArrowForwardRoundedIcon fontSize="small" />
         </button>
         <div className="seat-selection-page__mobile-perks">

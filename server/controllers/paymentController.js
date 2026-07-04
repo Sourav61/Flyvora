@@ -195,6 +195,226 @@ const markBookingFailed = async ({
   await releaseSeatIfNeeded({ client, seatId });
 };
 
+const parseCheckoutBookingIds = (body = {}) => {
+  const candidateIds = Array.isArray(body.bookingIds) && body.bookingIds.length > 0
+    ? body.bookingIds
+    : [body.bookingId];
+
+  return Array.from(
+    new Set(
+      candidateIds
+        .map((value) => Number.parseInt(value, 10))
+        .filter((value) => Number.isInteger(value) && value > 0)
+    )
+  );
+};
+
+const normalizePaymentNotes = (notes) => {
+  if (!notes) {
+    return {};
+  }
+
+  if (typeof notes === "object") {
+    return notes;
+  }
+
+  try {
+    return JSON.parse(notes);
+  } catch (error) {
+    return {};
+  }
+};
+
+const buildBookingIdsFromNotes = ({ primaryBookingId, notes }) => {
+  const linkedIds = Array.isArray(notes?.bookingIds) ? notes.bookingIds : [];
+  const parsedIds = linkedIds
+    .concat(primaryBookingId)
+    .map((value) => Number.parseInt(value, 10))
+    .filter((value) => Number.isInteger(value) && value > 0);
+
+  return Array.from(new Set(parsedIds));
+};
+
+const buildBookingResponse = (booking, totalAmount = null) => ({
+  id: booking.id,
+  bookingReference: booking.booking_reference,
+  email: booking.traveler_email,
+  travelerName: booking.traveler_name,
+  totalAmount: Number(totalAmount ?? booking.total_amount),
+  currency: booking.currency,
+});
+
+const buildAggregateBookingResponse = (bookings) => {
+  const primaryBooking = bookings[0];
+  const totalAmount = bookings.reduce((total, booking) => total + Number(booking.total_amount || 0), 0);
+
+  return {
+    primary: buildBookingResponse(primaryBooking, totalAmount),
+    bookings: bookings.map((booking) => buildBookingResponse(booking)),
+  };
+};
+
+const buildAggregatePricing = (bookings) => {
+  const currency = bookings[0]?.currency || "INR";
+
+  return bookings.reduce(
+    (pricing, booking) => ({
+      travelerCount: pricing.travelerCount + Number(booking.travelers_count || 1),
+      baseFareTotal: pricing.baseFareTotal + Number(booking.base_fare || 0),
+      taxesAndFees: pricing.taxesAndFees + Number(booking.taxes_and_fees || 0),
+      serviceFee: pricing.serviceFee + Number(booking.service_fee || 0),
+      seatFee: pricing.seatFee + Number(booking.seat_fee || 0),
+      totalAmount: pricing.totalAmount + Number(booking.total_amount || 0),
+      currency,
+    }),
+    {
+      travelerCount: 0,
+      baseFareTotal: 0,
+      taxesAndFees: 0,
+      serviceFee: 0,
+      seatFee: 0,
+      totalAmount: 0,
+      currency,
+    }
+  );
+};
+
+const fetchCheckoutBooking = async ({ client, bookingId }) => {
+  const bookingResult = await client.query(
+    `
+      SELECT
+        bookings.id,
+        bookings.flight_id,
+        bookings.seat_id,
+        bookings.status,
+        bookings.booking_reference,
+        bookings.traveler_name,
+        bookings.traveler_email,
+        bookings.provider_user_id,
+        bookings.cabin_class,
+        bookings.travelers_count,
+        bookings.seat_number,
+        bookings.base_fare,
+        bookings.taxes_and_fees,
+        bookings.service_fee,
+        bookings.seat_fee,
+        bookings.total_amount,
+        bookings.currency,
+        bookings.search_snapshot,
+        bookings.flight_snapshot,
+        bookings.hold_expires_at,
+        bookings.created_at,
+        bookings.updated_at
+      FROM bookings
+      WHERE bookings.id = $1
+      LIMIT 1
+      FOR UPDATE
+    `,
+    [bookingId]
+  );
+
+  const bookingRow = bookingResult.rows[0];
+
+  if (!bookingRow) {
+    return null;
+  }
+
+  const latestPaymentResult = await client.query(
+    `
+      SELECT id, provider_order_id, provider_payment_id, status, notes
+      FROM payments
+      WHERE booking_id = $1
+      ORDER BY updated_at DESC NULLS LAST, id DESC
+      LIMIT 1
+      FOR UPDATE
+    `,
+    [bookingId]
+  );
+
+  const flightResult = await client.query(
+    `
+      SELECT source, destination, departure_time, arrival_time, price AS flight_price
+      FROM flights
+      WHERE id = $1
+      LIMIT 1
+    `,
+    [bookingRow.flight_id]
+  );
+
+  const seatResult = await client.query(
+    `
+      SELECT id, status, reserved_until
+      FROM seats
+      WHERE id = $1
+      LIMIT 1
+      FOR UPDATE
+    `,
+    [bookingRow.seat_id]
+  );
+
+  const latestPayment = latestPaymentResult.rows[0] || {};
+  const flight = flightResult.rows[0] || {};
+  const seat = seatResult.rows[0] || {};
+
+  return {
+    ...bookingRow,
+    payment_row_id: latestPayment.id || null,
+    provider_order_id: latestPayment.provider_order_id || null,
+    provider_payment_id: latestPayment.provider_payment_id || null,
+    payment_status: latestPayment.status || null,
+    payment_notes: normalizePaymentNotes(latestPayment.notes),
+    source: flight.source || null,
+    destination: flight.destination || null,
+    departure_time: flight.departure_time || null,
+    arrival_time: flight.arrival_time || null,
+    flight_price: flight.flight_price || null,
+    seat_status: seat.status || null,
+    seat_reserved_until: seat.reserved_until || null,
+  };
+};
+
+const findCompanionRoundTripBookingIds = async ({ client, booking }) => {
+  const searchSnapshot = booking.search_snapshot || {};
+
+  if (searchSnapshot.tripType !== "round-trip") {
+    return [];
+  }
+
+  const result = await client.query(
+    `
+      SELECT bookings.id
+      FROM bookings
+      WHERE bookings.id <> $1
+        AND bookings.flight_id <> $8
+        AND (($2 <> '' AND bookings.provider_user_id = $2) OR ($3 <> '' AND bookings.traveler_email = $3))
+        AND bookings.status IN ('reserved', 'payment_pending')
+        AND COALESCE(
+          bookings.hold_expires_at,
+          bookings.created_at + INTERVAL '5 minutes'
+        ) > CURRENT_TIMESTAMP
+        AND COALESCE(bookings.search_snapshot->>'tripType', '') = 'round-trip'
+        AND COALESCE(bookings.search_snapshot->>'source', '') = $4
+        AND COALESCE(bookings.search_snapshot->>'destination', '') = $5
+        AND COALESCE(bookings.search_snapshot->>'departureDate', '') = $6
+        AND COALESCE(bookings.search_snapshot->>'returnDate', '') = $7
+      ORDER BY bookings.updated_at DESC NULLS LAST, bookings.id DESC
+      LIMIT 1
+    `,
+    [
+      booking.id,
+      booking.provider_user_id || "",
+      normalizeEmail(booking.traveler_email || ""),
+      normalizeText(searchSnapshot.source || ""),
+      normalizeText(searchSnapshot.destination || ""),
+      normalizeText(searchSnapshot.departureDate || ""),
+      normalizeText(searchSnapshot.returnDate || ""),
+      booking.flight_id,
+    ]
+  );
+
+  return result.rows.map((row) => row.id);
+};
+
 const callDodoApi = async (path, { method = "GET", body } = {}) => {
   const { apiKey } = getDodoConfig();
   const response = await fetch(`${getDodoBaseUrl()}${path}`, {
@@ -277,10 +497,13 @@ const validateDodoProductForFlightCheckout = async (pricing) => {
 
 const createHostedCheckoutSession = async ({
   bookingId,
+  bookingIds = [bookingId],
   bookingReference,
   flight,
   pricing,
   seatCode,
+  route,
+  metadata = {},
   customer,
 }) => {
   const { productId } = getDodoConfig();
@@ -290,7 +513,7 @@ const createHostedCheckoutSession = async ({
       {
         product_id: productId,
         quantity: 1,
-        amount: Math.round(pricing.totalAmount * 100),
+        amount: Math.round(Number(pricing.totalAmount || 0) * 100),
       },
     ],
     customer: {
@@ -303,11 +526,13 @@ const createHostedCheckoutSession = async ({
     show_saved_payment_methods: true,
     minimal_address: true,
     metadata: {
+      ...metadata,
       bookingId: String(bookingId),
+      bookingIds: bookingIds.map((id) => String(id)).join(","),
       bookingReference,
       flightId: String(flight.id),
       seatCode,
-      route: `${flight.source}-${flight.destination}`,
+      route: route || `${flight.source}-${flight.destination}`,
     },
     customization: {
       theme: "light",
@@ -364,8 +589,8 @@ const createDodoPaymentSession = async (req, res, next) => {
   const dbClient = await pool.connect();
 
   try {
-    const { bookingId, customer = {} } = req.body || {};
-    const parsedBookingId = Number.parseInt(bookingId, 10);
+    const { customer = {} } = req.body || {};
+    let bookingIds = parseCheckoutBookingIds(req.body || {});
     const normalizedName = normalizeText(customer.name || "");
     const normalizedEmail = normalizeEmail(customer.email || "");
     const normalizedPhone = normalizePhone(customer.phone || "");
@@ -373,7 +598,7 @@ const createDodoPaymentSession = async (req, res, next) => {
 
     getDodoConfig();
 
-    if (!Number.isInteger(parsedBookingId) || parsedBookingId <= 0) {
+    if (bookingIds.length === 0) {
       return res.status(400).json({ message: "Reservation id is required before payment." });
     }
 
@@ -392,173 +617,146 @@ const createDodoPaymentSession = async (req, res, next) => {
     await dbClient.query("BEGIN");
     await cleanupExpiredReservations({ client: dbClient });
 
-    const bookingResult = await dbClient.query(
-      `
-        SELECT
-          bookings.id,
-          bookings.flight_id,
-          bookings.seat_id,
-          bookings.status,
-          bookings.booking_reference,
-          bookings.traveler_name,
-          bookings.traveler_email,
-          bookings.provider_user_id,
-          bookings.cabin_class,
-          bookings.travelers_count,
-          bookings.seat_number,
-          bookings.base_fare,
-          bookings.taxes_and_fees,
-          bookings.service_fee,
-          bookings.seat_fee,
-          bookings.total_amount,
-          bookings.currency,
-          bookings.search_snapshot,
-          bookings.flight_snapshot,
-          bookings.hold_expires_at,
-          bookings.created_at,
-          bookings.updated_at
-        FROM bookings
-        WHERE bookings.id = $1
-        LIMIT 1
-        FOR UPDATE
-      `,
-      [parsedBookingId]
-    );
+    const bookings = [];
 
-    const latestPaymentResult = await dbClient.query(
-      `
-        SELECT id, provider_order_id, status
-        FROM payments
-        WHERE booking_id = $1
-        ORDER BY updated_at DESC NULLS LAST, id DESC
-        LIMIT 1
-        FOR UPDATE
-      `,
-      [parsedBookingId]
-    );
+    for (const bookingId of bookingIds) {
+      const booking = await fetchCheckoutBooking({ client: dbClient, bookingId });
 
-    const flightResult = await dbClient.query(
-      `
-        SELECT source, destination, departure_time, arrival_time, price AS flight_price
-        FROM flights
-        WHERE id = $1
-        LIMIT 1
-      `,
-      [parsedBookingId ? bookingResult.rows[0]?.flight_id : null]
-    );
-
-    const booking = bookingResult.rows[0]
-      ? {
-          ...bookingResult.rows[0],
-          payment_row_id: latestPaymentResult.rows[0]?.id || null,
-          provider_order_id: latestPaymentResult.rows[0]?.provider_order_id || null,
-          payment_status: latestPaymentResult.rows[0]?.status || null,
-          source: flightResult.rows[0]?.source || null,
-          destination: flightResult.rows[0]?.destination || null,
-          departure_time: flightResult.rows[0]?.departure_time || null,
-          arrival_time: flightResult.rows[0]?.arrival_time || null,
-          flight_price: flightResult.rows[0]?.flight_price || null,
-        }
-      : null;
-
-    if (!booking) {
-      await dbClient.query("ROLLBACK");
-      return res.status(404).json({ message: "That seat reservation no longer exists. Please pick a seat again." });
-    }
-
-    if (booking.provider_user_id && providerUserId && booking.provider_user_id !== providerUserId) {
-      await dbClient.query("ROLLBACK");
-      return res.status(403).json({ message: "This seat reservation belongs to another user." });
-    }
-
-    const isActiveCheckoutReservation = ["reserved", "payment_pending"].includes(booking.status);
-    const isRetryableFailedReservation =
-      booking.status === "payment_failed" && DODO_FAILURE_STATUSES.has(booking.payment_status || "");
-
-    if (!isActiveCheckoutReservation && !isRetryableFailedReservation) {
-      await dbClient.query("ROLLBACK");
-      return res.status(409).json({ message: "This reservation can no longer be used for checkout." });
-    }
-
-    const holdExpiresAt = resolveHoldExpiresAt(booking);
-    const now = Date.now();
-
-    if (holdExpiresAt.getTime() <= now) {
-      await dbClient.query("ROLLBACK");
-      return res.status(409).json({ message: "Your 5-minute seat hold expired. Please choose a seat again." });
-    }
-
-    const seatResult = await dbClient.query(
-      `
-        SELECT id, status, reserved_until
-        FROM seats
-        WHERE id = $1
-        LIMIT 1
-        FOR UPDATE
-      `,
-      [booking.seat_id]
-    );
-
-    const seatRecord = seatResult.rows[0];
-
-    if (!seatRecord) {
-      await dbClient.query("ROLLBACK");
-      return res.status(404).json({ message: "That seat is no longer available." });
-    }
-
-    const seatReservedUntil = seatRecord.reserved_until ? new Date(seatRecord.reserved_until) : null;
-
-    if (isRetryableFailedReservation) {
-      const seatIsHeldByAnotherReservation = Boolean(
-        seatRecord.status === "reserved" &&
-        seatReservedUntil &&
-        seatReservedUntil.getTime() > now
-      );
-
-      if (seatRecord.status === "booked" || seatIsHeldByAnotherReservation) {
+      if (!booking) {
         await dbClient.query("ROLLBACK");
-        return res.status(409).json({ message: "That seat is no longer available. Please choose another seat." });
+        return res.status(404).json({ message: "That seat reservation no longer exists. Please pick a seat again." });
       }
 
-      await dbClient.query(
-        `
-          UPDATE seats
-          SET status = 'reserved',
-              reserved_until = $2
-          WHERE id = $1
-        `,
-        [booking.seat_id, holdExpiresAt]
-      );
-    } else if (
-      seatRecord.status !== "reserved" ||
-      !seatReservedUntil ||
-      seatReservedUntil.getTime() <= now
-    ) {
-      await dbClient.query("ROLLBACK");
-      return res.status(409).json({ message: "That seat is no longer reserved for you. Please choose a seat again." });
+      bookings.push(booking);
     }
 
-    const bookingReference = booking.booking_reference || buildBookingReference();
-    const flightSnapshot = resolveFlightSnapshot(booking);
-    const pricing = {
-      travelerCount: Number(booking.travelers_count || 1),
-      baseFareTotal: Number(booking.base_fare || 0),
-      taxesAndFees: Number(booking.taxes_and_fees || 0),
-      serviceFee: Number(booking.service_fee || 0),
-      seatFee: Number(booking.seat_fee || 0),
-      totalAmount: Number(booking.total_amount || 0),
-      currency: booking.currency || "INR",
-    };
-    const receipt = buildReceipt(bookingReference);
+    if (bookings.length === 1) {
+      const companionBookingIds = await findCompanionRoundTripBookingIds({
+        client: dbClient,
+        booking: bookings[0],
+      });
+
+      for (const companionBookingId of companionBookingIds) {
+        if (bookingIds.includes(companionBookingId)) {
+          continue;
+        }
+
+        const companionBooking = await fetchCheckoutBooking({ client: dbClient, bookingId: companionBookingId });
+
+        if (companionBooking) {
+          bookingIds = [...bookingIds, companionBookingId];
+          bookings.push(companionBooking);
+        }
+      }
+    }
+
+    if (bookings[0]?.search_snapshot?.tripType === "round-trip" && bookings.length < 2) {
+      await dbClient.query("ROLLBACK");
+      return res.status(409).json({ message: "Both outbound and return seat reservations are required before round-trip payment." });
+    }
+
+    const currencies = new Set(bookings.map((booking) => normalizeText(booking.currency || "INR").toUpperCase()));
+
+    if (currencies.size > 1) {
+      await dbClient.query("ROLLBACK");
+      return res.status(409).json({ message: "All legs in one checkout must use the same currency." });
+    }
+
+    const now = Date.now();
+    const holdExpiresAtByBookingId = new Map();
+    const bookingReferenceById = new Map();
+
+    for (const booking of bookings) {
+      if (booking.provider_user_id && providerUserId && booking.provider_user_id !== providerUserId) {
+        await dbClient.query("ROLLBACK");
+        return res.status(403).json({ message: "This seat reservation belongs to another user." });
+      }
+
+      const isActiveCheckoutReservation = ["reserved", "payment_pending"].includes(booking.status);
+      const isRetryableFailedReservation =
+        booking.status === "payment_failed" && DODO_FAILURE_STATUSES.has(booking.payment_status || "");
+
+      if (!isActiveCheckoutReservation && !isRetryableFailedReservation) {
+        await dbClient.query("ROLLBACK");
+        return res.status(409).json({ message: "This reservation can no longer be used for checkout." });
+      }
+
+      const holdExpiresAt = resolveHoldExpiresAt(booking);
+
+      if (holdExpiresAt.getTime() <= now) {
+        await dbClient.query("ROLLBACK");
+        return res.status(409).json({ message: "Your 5-minute seat hold expired. Please choose a seat again." });
+      }
+
+      const seatReservedUntil = booking.seat_reserved_until ? new Date(booking.seat_reserved_until) : null;
+
+      if (isRetryableFailedReservation) {
+        const seatIsHeldByAnotherReservation = Boolean(
+          booking.seat_status === "reserved" &&
+          seatReservedUntil &&
+          seatReservedUntil.getTime() > now
+        );
+
+        if (booking.seat_status === "booked" || seatIsHeldByAnotherReservation) {
+          await dbClient.query("ROLLBACK");
+          return res.status(409).json({ message: "That seat is no longer available. Please choose another seat." });
+        }
+
+        await dbClient.query(
+          `
+            UPDATE seats
+            SET status = 'reserved',
+                reserved_until = $2
+            WHERE id = $1
+          `,
+          [booking.seat_id, holdExpiresAt]
+        );
+      } else if (
+        booking.seat_status !== "reserved" ||
+        !seatReservedUntil ||
+        seatReservedUntil.getTime() <= now
+      ) {
+        await dbClient.query("ROLLBACK");
+        return res.status(409).json({ message: "That seat is no longer reserved for you. Please choose a seat again." });
+      }
+
+      holdExpiresAtByBookingId.set(booking.id, holdExpiresAt);
+      bookingReferenceById.set(booking.id, booking.booking_reference || buildBookingReference());
+    }
+
+    const pricing = buildAggregatePricing(bookings);
+    const primaryBooking = bookings[0];
+    const primaryBookingReference = bookingReferenceById.get(primaryBooking.id);
+    const primaryFlightSnapshot = resolveFlightSnapshot(primaryBooking);
+    const segments = bookings.map((booking, index) => {
+      const flightSnapshot = resolveFlightSnapshot(booking);
+
+      return {
+        legIndex: index,
+        bookingId: booking.id,
+        bookingReference: bookingReferenceById.get(booking.id),
+        flightId: booking.flight_id,
+        seatCode: booking.seat_number,
+        route: `${flightSnapshot.source}-${flightSnapshot.destination}`,
+      };
+    });
+    const seatCodeLabel = segments.map((segment) => segment.seatCode).join(", ");
+    const routeLabel = segments.map((segment) => segment.route).join(" | ");
     const session = await createHostedCheckoutSession({
-      bookingId: booking.id,
-      bookingReference,
+      bookingId: primaryBooking.id,
+      bookingIds,
+      bookingReference: primaryBookingReference,
       flight: {
-        ...flightSnapshot,
-        id: booking.flight_id,
+        ...primaryFlightSnapshot,
+        id: primaryBooking.flight_id,
       },
       pricing,
-      seatCode: booking.seat_number,
+      seatCode: seatCodeLabel,
+      route: routeLabel,
+      metadata: {
+        primaryBookingId: String(primaryBooking.id),
+        legCount: String(bookings.length),
+      },
       customer: {
         name: normalizedName,
         email: normalizedEmail,
@@ -566,94 +764,103 @@ const createDodoPaymentSession = async (req, res, next) => {
       },
     });
 
-    await dbClient.query(
-      `
-        UPDATE bookings
-        SET status = 'payment_pending',
-            booking_reference = $2,
-            traveler_name = $3,
-            traveler_email = $4,
-            traveler_phone = $5,
-            provider_user_id = COALESCE($6, provider_user_id),
-            hold_expires_at = COALESCE(hold_expires_at, $7),
-            updated_at = CURRENT_TIMESTAMP
-        WHERE id = $1
-      `,
-      [
-        booking.id,
-        bookingReference,
-        normalizedName,
-        normalizedEmail,
-        normalizedPhone,
-        providerUserId || null,
-        holdExpiresAt,
-      ]
-    );
+    for (const booking of bookings) {
+      const bookingReference = bookingReferenceById.get(booking.id);
+      const holdExpiresAt = holdExpiresAtByBookingId.get(booking.id);
 
-    if (booking.payment_row_id) {
       await dbClient.query(
         `
-          UPDATE payments
-          SET amount = $2,
-              status = 'created',
-              provider = $3,
-              currency = $4,
-              receipt = $5,
-              provider_order_id = $6,
-              provider_payment_id = NULL,
-              provider_signature = NULL,
-              provider_method = NULL,
-              notes = $7::jsonb,
-              verified_at = NULL,
+          UPDATE bookings
+          SET status = 'payment_pending',
+              booking_reference = $2,
+              traveler_name = $3,
+              traveler_email = $4,
+              traveler_phone = $5,
+              provider_user_id = COALESCE($6, provider_user_id),
+              hold_expires_at = COALESCE(hold_expires_at, $7),
               updated_at = CURRENT_TIMESTAMP
           WHERE id = $1
         `,
         [
-          booking.payment_row_id,
-          pricing.totalAmount,
-          DODO_PROVIDER,
-          pricing.currency,
-          receipt,
-          session.session_id,
-          JSON.stringify({
-            checkoutUrl: session.checkout_url,
-            bookingReference,
-            seatCode: booking.seat_number,
-            route: `${flightSnapshot.source}-${flightSnapshot.destination}`,
-          }),
-        ]
-      );
-    } else {
-      await dbClient.query(
-        `
-          INSERT INTO payments (
-            booking_id,
-            amount,
-            status,
-            provider,
-            currency,
-            receipt,
-            provider_order_id,
-            notes,
-            updated_at
-          )
-          VALUES ($1, $2, 'created', $3, $4, $5, $6, $7::jsonb, CURRENT_TIMESTAMP)
-        `,
-        [
           booking.id,
-          pricing.totalAmount,
-          DODO_PROVIDER,
-          pricing.currency,
-          receipt,
-          session.session_id,
-          JSON.stringify({
-            checkoutUrl: session.checkout_url,
-            bookingReference,
-            seatCode: booking.seat_number,
-            route: `${flightSnapshot.source}-${flightSnapshot.destination}`,
-          }),
+          bookingReference,
+          normalizedName,
+          normalizedEmail,
+          normalizedPhone,
+          providerUserId || null,
+          holdExpiresAt,
         ]
       );
+
+      const isPrimaryBooking = booking.id === primaryBooking.id;
+      const receipt = buildReceipt(bookingReference);
+      const paymentNotes = {
+        checkoutUrl: session.checkout_url,
+        dodoCheckoutId: session.session_id,
+        bookingIds,
+        primaryBookingId: primaryBooking.id,
+        bookingReference,
+        aggregateCheckout: isPrimaryBooking,
+        seatCode: booking.seat_number,
+        route: segments.find((segment) => segment.bookingId === booking.id)?.route || null,
+        segments,
+      };
+
+      if (booking.payment_row_id) {
+        await dbClient.query(
+          `
+            UPDATE payments
+            SET amount = $2,
+                status = 'created',
+                provider = $3,
+                currency = $4,
+                receipt = $5,
+                provider_order_id = $6,
+                provider_payment_id = NULL,
+                provider_signature = NULL,
+                provider_method = NULL,
+                notes = $7::jsonb,
+                verified_at = NULL,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = $1
+          `,
+          [
+            booking.payment_row_id,
+            isPrimaryBooking ? pricing.totalAmount : Number(booking.total_amount || 0),
+            DODO_PROVIDER,
+            pricing.currency,
+            receipt,
+            isPrimaryBooking ? session.session_id : null,
+            JSON.stringify(paymentNotes),
+          ]
+        );
+      } else {
+        await dbClient.query(
+          `
+            INSERT INTO payments (
+              booking_id,
+              amount,
+              status,
+              provider,
+              currency,
+              receipt,
+              provider_order_id,
+              notes,
+              updated_at
+            )
+            VALUES ($1, $2, 'created', $3, $4, $5, $6, $7::jsonb, CURRENT_TIMESTAMP)
+          `,
+          [
+            booking.id,
+            isPrimaryBooking ? pricing.totalAmount : Number(booking.total_amount || 0),
+            DODO_PROVIDER,
+            pricing.currency,
+            receipt,
+            isPrimaryBooking ? session.session_id : null,
+            JSON.stringify(paymentNotes),
+          ]
+        );
+      }
     }
 
     await dbClient.query("COMMIT");
@@ -661,18 +868,25 @@ const createDodoPaymentSession = async (req, res, next) => {
     return res.status(200).json({
       message: "Dodo checkout session created successfully.",
       booking: {
-        id: booking.id,
-        bookingReference,
-        holdExpiresAt,
+        id: primaryBooking.id,
+        bookingReference: primaryBookingReference,
+        holdExpiresAt: holdExpiresAtByBookingId.get(primaryBooking.id),
         status: "payment_pending",
       },
+      bookings: bookings.map((booking) => ({
+        id: booking.id,
+        bookingReference: bookingReferenceById.get(booking.id),
+        holdExpiresAt: holdExpiresAtByBookingId.get(booking.id),
+        status: "payment_pending",
+        seatCode: booking.seat_number,
+      })),
       checkout: {
         sessionId: session.session_id,
         checkoutUrl: session.checkout_url,
       },
       pricing: {
         ...pricing,
-        seatProfile: `${getSeatType(booking.seat_number)} | ${getSeatPosition(booking.seat_number)}`,
+        seatProfile: segments.map((segment) => `${getSeatType(segment.seatCode)} | ${getSeatPosition(segment.seatCode)}`).join(", "),
       },
     });
   } catch (error) {
@@ -698,8 +912,9 @@ const verifyDodoPayment = async (req, res, next) => {
       status: returnedStatus,
       email: returnedEmail,
     } = req.body || {};
+    const parsedBookingId = Number.parseInt(bookingId, 10);
 
-    if (!bookingId) {
+    if (!Number.isInteger(parsedBookingId) || parsedBookingId <= 0) {
       return res.status(400).json({ message: "Booking id is required to verify the Dodo payment." });
     }
 
@@ -708,136 +923,127 @@ const verifyDodoPayment = async (req, res, next) => {
     await dbClient.query("BEGIN");
     await cleanupExpiredReservations({ client: dbClient });
 
-    const bookingResult = await dbClient.query(
-      `
-        SELECT
-          bookings.id,
-          bookings.booking_reference,
-          bookings.status AS booking_status,
-          bookings.seat_id,
-          bookings.hold_expires_at,
-          bookings.created_at,
-          bookings.traveler_email,
-          bookings.traveler_name,
-          bookings.total_amount,
-          bookings.currency
-        FROM bookings
-        WHERE bookings.id = $1
-        LIMIT 1
-        FOR UPDATE
-      `,
-      [bookingId]
-    );
+    let primaryBooking = await fetchCheckoutBooking({ client: dbClient, bookingId: parsedBookingId });
 
-    const paymentResult = await dbClient.query(
-      `
-        SELECT provider_order_id, provider_payment_id, status AS payment_status
-        FROM payments
-        WHERE booking_id = $1
-        ORDER BY updated_at DESC NULLS LAST, id DESC
-        LIMIT 1
-        FOR UPDATE
-      `,
-      [bookingId]
-    );
-
-    const seatResult = await dbClient.query(
-      `
-        SELECT status AS seat_status, reserved_until AS seat_reserved_until
-        FROM seats
-        WHERE id = $1
-        LIMIT 1
-        FOR UPDATE
-      `,
-      [bookingResult.rows[0]?.seat_id || null]
-    );
-
-    const booking = bookingResult.rows[0]
-      ? {
-          ...bookingResult.rows[0],
-          provider_order_id: paymentResult.rows[0]?.provider_order_id || null,
-          provider_payment_id: paymentResult.rows[0]?.provider_payment_id || null,
-          payment_status: paymentResult.rows[0]?.payment_status || null,
-          seat_status: seatResult.rows[0]?.seat_status || null,
-          seat_reserved_until: seatResult.rows[0]?.seat_reserved_until || null,
-        }
-      : null;
-
-    if (!booking) {
+    if (!primaryBooking) {
       await dbClient.query("ROLLBACK");
       return res.status(404).json({ message: "We could not find that pending booking." });
     }
 
-    if (booking.booking_status === "confirmed") {
+    const linkedPrimaryBookingId = Number.parseInt(primaryBooking.payment_notes?.primaryBookingId, 10);
+
+    if (
+      !primaryBooking.provider_order_id &&
+      Number.isInteger(linkedPrimaryBookingId) &&
+      linkedPrimaryBookingId > 0 &&
+      linkedPrimaryBookingId !== primaryBooking.id
+    ) {
+      const linkedPrimaryBooking = await fetchCheckoutBooking({ client: dbClient, bookingId: linkedPrimaryBookingId });
+
+      if (linkedPrimaryBooking) {
+        primaryBooking = linkedPrimaryBooking;
+      }
+    }
+
+    if (!primaryBooking.provider_order_id) {
+      await dbClient.query("ROLLBACK");
+      return res.status(409).json({ message: "Checkout session is missing for this booking." });
+    }
+
+    const relatedBookingIds = buildBookingIdsFromNotes({
+      primaryBookingId: primaryBooking.id,
+      notes: primaryBooking.payment_notes,
+    });
+    const bookings = [];
+
+    for (const relatedBookingId of relatedBookingIds) {
+      const booking = await fetchCheckoutBooking({ client: dbClient, bookingId: relatedBookingId });
+
+      if (!booking) {
+        await dbClient.query("ROLLBACK");
+        return res.status(404).json({ message: "We could not find one of the pending bookings for this checkout." });
+      }
+
+      bookings.push(booking);
+    }
+
+    const aggregateResponse = buildAggregateBookingResponse(bookings);
+
+    if (bookings.every((booking) => booking.status === "confirmed")) {
       await dbClient.query("COMMIT");
       return res.status(200).json({
         message: "Booking already confirmed.",
-        booking: {
-          id: booking.id,
-          bookingReference: booking.booking_reference,
-          email: booking.traveler_email,
-          travelerName: booking.traveler_name,
-          totalAmount: Number(booking.total_amount),
-          currency: booking.currency,
-        },
+        booking: aggregateResponse.primary,
+        bookings: aggregateResponse.bookings,
         payment: {
-          id: booking.provider_payment_id || paymentId || null,
-          orderId: booking.provider_order_id,
-          status: booking.payment_status || "succeeded",
+          id: primaryBooking.provider_payment_id || paymentId || null,
+          orderId: primaryBooking.provider_order_id,
+          status: primaryBooking.payment_status || "succeeded",
           method: null,
         },
       });
     }
 
-    if (!booking.provider_order_id) {
-      await dbClient.query("ROLLBACK");
-      return res.status(409).json({ message: "Checkout session is missing for this booking." });
-    }
-
-    const checkoutSession = await fetchHostedCheckoutSession(booking.provider_order_id, returnedStatus);
+    const checkoutSession = await fetchHostedCheckoutSession(primaryBooking.provider_order_id, returnedStatus);
     const dodoPaymentStatus = normalizePaymentStatus(checkoutSession?.payment_status);
     const fallbackReturnedStatus = normalizePaymentStatus(returnedStatus);
     const paymentStatus = dodoPaymentStatus || (DODO_FAILURE_STATUSES.has(fallbackReturnedStatus) ? fallbackReturnedStatus : "processing");
-    const resolvedPaymentId = normalizeText(checkoutSession?.payment_id || paymentId || booking.provider_payment_id || "") || null;
-    const resolvedEmail = normalizeEmail(checkoutSession?.customer_email || returnedEmail || booking.traveler_email || "");
+    const resolvedPaymentId = normalizeText(checkoutSession?.payment_id || paymentId || primaryBooking.provider_payment_id || "") || null;
+    const resolvedEmail = normalizeEmail(checkoutSession?.customer_email || returnedEmail || primaryBooking.traveler_email || "");
     const verificationNotes = {
-      dodoCheckoutId: booking.provider_order_id,
+      dodoCheckoutId: primaryBooking.provider_order_id,
       dodoReturnedStatus: fallbackReturnedStatus || null,
       verifiedEmail: resolvedEmail || null,
+      bookingIds: relatedBookingIds,
+      primaryBookingId: primaryBooking.id,
     };
 
     if (DODO_SUCCESS_STATUSES.has(dodoPaymentStatus)) {
-      const holdExpiresAt = resolveHoldExpiresAt(booking);
-      const seatReservedUntil = booking.seat_reserved_until ? new Date(booking.seat_reserved_until) : null;
-      const holdHasExpired = holdExpiresAt.getTime() <= Date.now();
-      const seatIsStillReserved = booking.seat_status === "reserved" && seatReservedUntil && seatReservedUntil.getTime() > Date.now();
+      const now = Date.now();
+      const staleBooking = bookings.find((booking) => {
+        if (booking.status === "confirmed") {
+          return false;
+        }
 
-      if (holdHasExpired || !seatIsStillReserved) {
-        await updatePaymentState({
-          client: dbClient,
-          bookingId,
-          status: dodoPaymentStatus,
-          paymentId: resolvedPaymentId,
-          markVerified: true,
-          notes: {
-            ...verificationNotes,
-            seatConfirmationError: "Seat hold expired before booking confirmation.",
-          },
-        });
+        const holdExpiresAt = resolveHoldExpiresAt(booking);
+        const seatReservedUntil = booking.seat_reserved_until ? new Date(booking.seat_reserved_until) : null;
+        const holdHasExpired = holdExpiresAt.getTime() <= now;
+        const seatIsStillReserved = booking.seat_status === "reserved" && seatReservedUntil && seatReservedUntil.getTime() > now;
+
+        return holdHasExpired || !seatIsStillReserved;
+      });
+
+      if (staleBooking) {
+        for (const booking of bookings) {
+          await updatePaymentState({
+            client: dbClient,
+            bookingId: booking.id,
+            status: dodoPaymentStatus,
+            paymentId: resolvedPaymentId,
+            markVerified: true,
+            notes: {
+              ...verificationNotes,
+              seatConfirmationError: "Seat hold expired before booking confirmation.",
+            },
+          });
+        }
+
         await dbClient.query("COMMIT");
         return res.status(409).json({
           message: "Your 5-minute seat hold expired before payment could be confirmed. Please choose a seat again.",
         });
       }
 
-      await updatePaymentState({
-        client: dbClient,
-        bookingId,
-        status: dodoPaymentStatus,
-        paymentId: resolvedPaymentId,
-        markVerified: true,
-        notes: verificationNotes,
-      });
+      for (const booking of bookings) {
+        await updatePaymentState({
+          client: dbClient,
+          bookingId: booking.id,
+          status: dodoPaymentStatus,
+          paymentId: resolvedPaymentId,
+          markVerified: true,
+          notes: verificationNotes,
+        });
+      }
 
       await dbClient.query(
         `
@@ -845,9 +1051,9 @@ const verifyDodoPayment = async (req, res, next) => {
           SET status = 'confirmed',
               hold_expires_at = NULL,
               updated_at = CURRENT_TIMESTAMP
-          WHERE id = $1
+          WHERE id = ANY($1::int[])
         `,
-        [bookingId]
+        [bookings.map((booking) => booking.id)]
       );
 
       await dbClient.query(
@@ -855,9 +1061,9 @@ const verifyDodoPayment = async (req, res, next) => {
           UPDATE seats
           SET status = 'booked',
               reserved_until = NULL
-          WHERE id = $1
+          WHERE id = ANY($1::int[])
         `,
-        [booking.seat_id]
+        [bookings.map((booking) => booking.seat_id)]
       );
 
       await dbClient.query("COMMIT");
@@ -865,16 +1071,16 @@ const verifyDodoPayment = async (req, res, next) => {
       return res.status(200).json({
         message: "Payment verified successfully.",
         booking: {
-          id: booking.id,
-          bookingReference: booking.booking_reference,
-          email: resolvedEmail || booking.traveler_email,
-          travelerName: booking.traveler_name,
-          totalAmount: Number(booking.total_amount),
-          currency: booking.currency,
+          ...aggregateResponse.primary,
+          email: resolvedEmail || aggregateResponse.primary.email,
         },
+        bookings: aggregateResponse.bookings.map((booking) => ({
+          ...booking,
+          email: resolvedEmail || booking.email,
+        })),
         payment: {
           id: resolvedPaymentId,
-          orderId: booking.provider_order_id,
+          orderId: primaryBooking.provider_order_id,
           status: dodoPaymentStatus,
           method: null,
         },
@@ -882,63 +1088,75 @@ const verifyDodoPayment = async (req, res, next) => {
     }
 
     if (DODO_FAILURE_STATUSES.has(paymentStatus)) {
-      const holdExpiresAt = resolveHoldExpiresAt(booking);
-      const seatReservedUntil = booking.seat_reserved_until ? new Date(booking.seat_reserved_until) : null;
-      const canRetryWithinHold = Boolean(
-        holdExpiresAt.getTime() > Date.now() &&
-        booking.seat_status === "reserved" &&
-        seatReservedUntil &&
-        seatReservedUntil.getTime() > Date.now()
-      );
+      const now = Date.now();
+      const retryableBookings = [];
 
-      await markBookingFailed({
-        client: dbClient,
-        bookingId,
-        seatId: booking.seat_id,
-        paymentId: resolvedPaymentId,
-        paymentStatus,
-        notes: verificationNotes,
-        keepReservationActive: canRetryWithinHold,
-      });
+      for (const booking of bookings) {
+        const holdExpiresAt = resolveHoldExpiresAt(booking);
+        const seatReservedUntil = booking.seat_reserved_until ? new Date(booking.seat_reserved_until) : null;
+        const canRetryWithinHold = Boolean(
+          holdExpiresAt.getTime() > now &&
+          booking.seat_status === "reserved" &&
+          seatReservedUntil &&
+          seatReservedUntil.getTime() > now
+        );
+
+        await markBookingFailed({
+          client: dbClient,
+          bookingId: booking.id,
+          seatId: booking.seat_id,
+          paymentId: resolvedPaymentId,
+          paymentStatus,
+          notes: verificationNotes,
+          keepReservationActive: canRetryWithinHold,
+        });
+
+        if (canRetryWithinHold) {
+          retryableBookings.push({
+            id: booking.id,
+            bookingReference: booking.booking_reference,
+            holdExpiresAt,
+            status: "reserved",
+          });
+        }
+      }
+
       await dbClient.query("COMMIT");
       return res.status(400).json({
         message:
           paymentStatus === "cancelled"
             ? "Payment was cancelled before completion."
             : "Payment did not complete successfully. Please try again.",
-        booking: canRetryWithinHold
-          ? {
-              id: booking.id,
-              bookingReference: booking.booking_reference,
-              holdExpiresAt,
-              status: "reserved",
-            }
-          : null,
+        booking: retryableBookings[0] || null,
+        bookings: retryableBookings,
       });
     }
 
-    await updatePaymentState({
-      client: dbClient,
-      bookingId,
-      status: paymentStatus,
-      paymentId: resolvedPaymentId,
-      notes: verificationNotes,
-    });
+    for (const booking of bookings) {
+      await updatePaymentState({
+        client: dbClient,
+        bookingId: booking.id,
+        status: paymentStatus,
+        paymentId: resolvedPaymentId,
+        notes: verificationNotes,
+      });
+    }
+
     await dbClient.query("COMMIT");
 
     return res.status(202).json({
       message: "Payment is still processing. Please wait a moment and refresh if needed.",
       booking: {
-        id: booking.id,
-        bookingReference: booking.booking_reference,
-        email: resolvedEmail || booking.traveler_email,
-        travelerName: booking.traveler_name,
-        totalAmount: Number(booking.total_amount),
-        currency: booking.currency,
+        ...aggregateResponse.primary,
+        email: resolvedEmail || aggregateResponse.primary.email,
       },
+      bookings: aggregateResponse.bookings.map((booking) => ({
+        ...booking,
+        email: resolvedEmail || booking.email,
+      })),
       payment: {
         id: resolvedPaymentId,
-        orderId: booking.provider_order_id,
+        orderId: primaryBooking.provider_order_id,
         status: paymentStatus,
         method: null,
       },
@@ -960,9 +1178,9 @@ const releaseCheckoutHold = async (req, res, next) => {
   const dbClient = await pool.connect();
 
   try {
-    const { bookingId } = req.body || {};
+    const bookingIds = parseCheckoutBookingIds(req.body || {});
 
-    if (!bookingId) {
+    if (bookingIds.length === 0) {
       return res.status(400).json({ message: "Booking id is required to release the hold." });
     }
 
@@ -972,33 +1190,36 @@ const releaseCheckoutHold = async (req, res, next) => {
       `
         SELECT id, seat_id, status
         FROM bookings
-        WHERE id = $1
-        LIMIT 1
+        WHERE id = ANY($1::int[])
         FOR UPDATE
       `,
-      [bookingId]
+      [bookingIds]
     );
 
-    const booking = bookingResult.rows[0];
+    const bookings = bookingResult.rows;
 
-    if (!booking) {
+    if (bookings.length === 0) {
       await dbClient.query("ROLLBACK");
       return res.status(404).json({ message: "Pending booking not found." });
     }
 
-    if (booking.status === "confirmed") {
+    const releasableBookings = bookings.filter((booking) => booking.status !== "confirmed");
+
+    if (releasableBookings.length === 0) {
       await dbClient.query("COMMIT");
       return res.status(200).json({ message: "Booking already confirmed." });
     }
+
+    const releasableBookingIds = releasableBookings.map((booking) => booking.id);
 
     await dbClient.query(
       `
         UPDATE payments
         SET status = 'cancelled',
             updated_at = CURRENT_TIMESTAMP
-        WHERE booking_id = $1 AND status <> 'succeeded'
+        WHERE booking_id = ANY($1::int[]) AND status <> 'succeeded'
       `,
-      [bookingId]
+      [releasableBookingIds]
     );
 
     await dbClient.query(
@@ -1007,15 +1228,18 @@ const releaseCheckoutHold = async (req, res, next) => {
         SET status = 'cancelled',
             hold_expires_at = NULL,
             updated_at = CURRENT_TIMESTAMP
-        WHERE id = $1
+        WHERE id = ANY($1::int[])
       `,
-      [bookingId]
+      [releasableBookingIds]
     );
 
-    await releaseSeatIfNeeded({ client: dbClient, seatId: booking.seat_id });
+    for (const booking of releasableBookings) {
+      await releaseSeatIfNeeded({ client: dbClient, seatId: booking.seat_id });
+    }
+
     await dbClient.query("COMMIT");
 
-    return res.status(200).json({ message: "Seat hold released." });
+    return res.status(200).json({ message: releasableBookings.length > 1 ? "Seat holds released." : "Seat hold released." });
   } catch (error) {
     try {
       await dbClient.query("ROLLBACK");
